@@ -8,10 +8,10 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<meta name="theme-color" content="#04070d">
+<meta name="theme-color" content="#0c2a26">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
@@ -289,17 +289,135 @@ td.ahora.nuevo,.tag.nuevo{color:var(--cielo)}
 .velo{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:rgba(2,5,9,.6);backdrop-filter:blur(4px)}
 .velo .caja{padding:22px 26px;display:grid;justify-items:center;gap:12px}
 .conexion{font-size:12.5px;color:var(--tenue);margin-top:4px}
+
+/* ===================================================================
+   TEMA "CABINA NEÓN" (igual que VUELOS-DRONES)
+   =================================================================== */
+:root{
+  --verde-fijo:#0c2a26; --tallo:#39ffb0; --caña-2:#0f3d36; --oro:#ffd166;
+  --fondo:#05080a; --tinta:#dff7f2; --suave:#7fa6a2; --tenue:#5d7f7b;
+  --panel:#0a1114; --campo-in:#0e171b; --lado:#030607; --linea:#16343a;
+  --vidrio:#0a1114; --vidrio-2:#0e1a1e; --borde:#16343a; --borde-2:#1f4a50;
+  --aqua:#39ffb0; --verde:#39ffb0; --cielo:#4cc9ff; --violeta:#4cc9ff;
+  --campo:#39ffb0; --taller:#ffd166; --atraso:#ff5d73; --sin:#8fa9b0;
+  --radio:10px; --blur:none;
+}
+body{font-family:"Barlow",system-ui,sans-serif;background-color:var(--fondo);
+  background-image:linear-gradient(rgba(57,255,176,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(57,255,176,.045) 1px,transparent 1px);
+  background-size:40px 40px;background-attachment:fixed}
+body::after{display:none}
+h1,h2,h3,.sec-tit{font-family:"Barlow Condensed","Arial Narrow",sans-serif;letter-spacing:.01em;font-weight:700}
+h1,h2,.sec-tit{text-shadow:0 0 18px rgba(57,255,176,.25)}
+.hud-barrido{position:fixed;left:0;right:0;top:-140px;height:140px;z-index:40;pointer-events:none;background:linear-gradient(180deg,transparent,rgba(57,255,176,.06),transparent)}
+@media (prefers-reduced-motion:no-preference){
+  .hud-barrido{animation:hudBarrer 8s linear infinite}
+  @keyframes hudBarrer{from{transform:translateY(0)}to{transform:translateY(calc(100vh + 140px))}}
+  [data-vista]:not(.oculto) > *{animation:entrar .6s cubic-bezier(.2,.7,.2,1) backwards}
+  [data-vista]:not(.oculto) > *:nth-child(2){animation-delay:.05s} [data-vista]:not(.oculto) > *:nth-child(3){animation-delay:.1s} [data-vista]:not(.oculto) > *:nth-child(n+4){animation-delay:.15s}
+  @keyframes entrar{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+}
+@media print{.hud-barrido{display:none}}
+
+/* paneles */
+.vidrio{background:var(--panel);border:1px solid var(--linea);border-radius:10px;backdrop-filter:none;-webkit-backdrop-filter:none;
+  box-shadow:0 0 0 1px rgba(57,255,176,.05),0 0 22px rgba(57,255,176,.04);transition:border-color .25s,box-shadow .25s,transform .25s}
+.panel.vidrio:hover,.kpi:hover,.eq:hover,.ficha:hover,.zona:hover{border-color:rgba(57,255,176,.55);box-shadow:0 0 0 1px rgba(57,255,176,.35),0 0 28px rgba(57,255,176,.16)}
+.kpi:hover,.eq:hover,.ficha:hover{transform:translateY(-2px)}
+
+/* botones */
+.btn{border-radius:8px;background:var(--panel);border:1px solid var(--linea);font-weight:600}
+.btn:hover{border-color:var(--tallo);background:var(--panel)}
+.btn.prim{background:var(--tallo);color:#032015;border-color:var(--tallo);box-shadow:0 0 16px rgba(57,255,176,.35)}
+.btn.prim:hover{box-shadow:0 0 24px rgba(57,255,176,.6);filter:none}
+input[type=text],input[type=password],input[type=number],input[type=search],select,textarea{background:var(--campo-in);border:1px solid var(--linea);border-radius:6px}
+input:focus,select:focus,textarea:focus{border-color:var(--tallo);box-shadow:0 0 0 3px rgba(57,255,176,.18)}
+:focus-visible{outline:3px solid var(--tallo);outline-offset:1px}
+label{font-weight:600}
+
+/* login */
+#login{background:radial-gradient(circle at 50% 0%,#0b2a24 0,transparent 60%)}
+.login-caja{padding:0;max-width:380px;background:var(--panel);border:1px solid var(--linea);border-radius:20px;overflow:hidden;box-shadow:0 14px 50px rgba(0,0,0,.5),0 0 0 1px rgba(57,255,176,.08)}
+.login-caja header{background:var(--lado);padding:22px 24px 18px;text-align:center}
+.login-caja header::after{content:"";display:block;height:6px;margin:16px -24px -18px;background:repeating-linear-gradient(90deg,var(--tallo) 0 14px,transparent 14px 20px)}
+.login-caja .logo{height:110px;margin:0 auto 10px;filter:none}
+.login-caja h1{font-size:30px}
+.login-caja .sub{margin:2px 0 0;opacity:.85}
+.login-caja form{padding:22px 24px 24px}
+.link-apk{color:var(--tallo);font-weight:600}
+
+/* menú lateral */
+.lado{background:rgba(3,6,7,.92);border-right:1px solid var(--linea);backdrop-filter:blur(6px)}
+.marca b{font-family:"Barlow Condensed",sans-serif;font-size:21px;line-height:1.05}
+.nav{border-radius:8px;font-weight:600;font-size:14.5px}
+.nav:hover{background:rgba(255,255,255,.06)}
+.nav.activo,.nav.activo:hover{background:var(--tallo);color:#032015;border-color:var(--tallo);box-shadow:0 0 18px rgba(57,255,176,.45)}
+.nav.activo svg{color:#032015}
+.movil-top{background:var(--verde-fijo);border-bottom:0;position:sticky}
+.movil-top::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:6px;background:repeating-linear-gradient(90deg,var(--tallo) 0 18px,transparent 18px 26px)}
+.movil-top b{font-family:"Barlow Condensed",sans-serif;font-size:19px}
+.movil-top .btn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35);color:#fff}
+.tabbar{background:rgba(3,6,7,.95);border:1px solid var(--linea);border-radius:12px}
+
+/* encabezado de página con franja */
+.barra{padding-bottom:14px;margin-bottom:18px;position:relative}
+.barra::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:repeating-linear-gradient(90deg,var(--tallo) 0 18px,transparent 18px 26px);opacity:.75}
+.barra h1{font-size:32px;line-height:1.05}
+
+/* indicadores */
+.kpi{border-radius:10px}
+.kpi::before{display:none}
+.kpi small{text-transform:uppercase;letter-spacing:.06em;font-size:12px;font-weight:600}
+.kpi b{font-family:"Barlow Condensed",sans-serif;font-size:44px;font-weight:700;color:var(--c);text-shadow:0 0 12px color-mix(in srgb,var(--c) 55%,transparent)}
+.kpi:first-child b{color:var(--tinta)}
+
+/* chips */
+.chip{background:var(--campo-in);border:1px solid var(--linea);font-weight:600;color:var(--suave)}
+.chip.activo{background:var(--caña-2);border-color:var(--tallo);color:#fff;box-shadow:0 0 12px rgba(57,255,176,.25)}
+.chip.activo b{color:var(--tallo)}
+
+/* tablas */
+table.t th{background:var(--caña-2);color:#fff;font-weight:600;letter-spacing:.03em;border-bottom:0}
+table.t th:first-child{border-top-left-radius:6px} table.t th:last-child{border-top-right-radius:6px}
+table.t td{border-bottom:1px solid var(--linea)}
+table.matriz td.v{color:var(--oro);text-shadow:0 0 10px rgba(255,209,102,.35)}
+table.matriz tr.tot td{background:rgba(57,255,176,.06)}
+.tabla-wrap.vidrio{padding:0;overflow:auto}
+
+/* estados */
+.e-campo{color:var(--tallo);border-color:rgba(57,255,176,.45);background:rgba(57,255,176,.1)}
+.e-taller{color:var(--oro);border-color:rgba(255,209,102,.45);background:rgba(255,209,102,.1)}
+.punto{box-shadow:0 0 10px currentColor}
+.bola{box-shadow:0 0 12px currentColor}
+
+/* resúmenes por zona */
+.zona h2{font-size:28px}
+.zona h3{font-family:"Barlow Condensed",sans-serif;font-size:20px}
+
+/* diálogos */
+.dlg{background:var(--panel);border:1px solid var(--linea);border-radius:18px;backdrop-filter:none}
+.dlg-cab{background:var(--verde-fijo);border-bottom:0}
+.dlg-cab::after{content:"";position:absolute;left:0;right:0;bottom:-5px;height:5px;background:repeating-linear-gradient(90deg,var(--tallo) 0 14px,transparent 14px 20px)}
+.dlg-cab h2{font-size:23px}
+.dlg-pie{background:var(--panel)}
+dialog{box-shadow:0 0 0 1px rgba(57,255,176,.25),0 0 50px rgba(57,255,176,.12),0 20px 60px rgba(0,0,0,.6);border-radius:18px}
+.cerrar{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35);color:#fff}
+.toast{background:var(--panel);border-color:var(--tallo);box-shadow:0 0 22px rgba(57,255,176,.25)}
+.giro{border-top-color:var(--tallo)}
+.subir{border:2px dashed var(--linea)}
+.subir.arrastre{border-color:var(--tallo);background:rgba(57,255,176,.06)}
 </style>
 </head>
 <body>
-<div class="aurora" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+<div class="hud-barrido" aria-hidden="true"></div>
 
 <!-- ======================= LOGIN ======================= -->
 <section id="login">
-  <div class="login-caja vidrio">
-    <img class="logo" src="logo.png" alt="Ingenio Madre Tierra">
-    <h1>Catálogo de equipos</h1>
-    <p class="sub">Departamento de Malezas y Madurantes</p>
+  <div class="login-caja">
+    <header>
+      <img class="logo" src="logo.png" alt="Ingenio Madre Tierra">
+      <h1>Catálogo de equipos</h1>
+      <p class="sub">Departamento de Malezas y Madurantes</p>
+    </header>
     <form id="formLogin" autocomplete="on">
       <div><label for="usuario">Usuario</label><input type="text" id="usuario" autocomplete="username" autocapitalize="characters" required></div>
       <div><label for="clave">Contraseña</label><input type="password" id="clave" autocomplete="current-password" required></div>
