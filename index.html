@@ -405,6 +405,16 @@ dialog{box-shadow:0 0 0 1px rgba(57,255,176,.25),0 0 50px rgba(57,255,176,.12),0
 .giro{border-top-color:var(--tallo)}
 .subir{border:2px dashed var(--linea)}
 .subir.arrastre{border-color:var(--tallo);background:rgba(57,255,176,.06)}
+
+/* foto completa (sin recortar) */
+.foto-grande{aspect-ratio:auto;min-height:180px;display:block;background:#000;cursor:zoom-in}
+.foto-grande img{display:block;width:100%;height:auto;max-height:72vh;object-fit:contain;margin:0 auto}
+.foto-grande .sinfoto{min-height:220px;cursor:default}
+.comp .ft{aspect-ratio:auto;min-height:110px;background:#000}
+.comp .ft img{width:100%;height:auto;max-height:260px;object-fit:contain;display:block}
+.visor{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.94);display:grid;place-items:center;padding:12px;cursor:zoom-out}
+.visor img{max-width:100%;max-height:100%;object-fit:contain}
+.visor button{position:absolute;top:calc(12px + env(safe-area-inset-top));right:12px;width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;font-size:22px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -1106,6 +1116,12 @@ function comprimir(file, max=1600, q=.82){
     img.src = url;
   });
 }
+/** Foto en pantalla completa */
+function verFoto(src){
+  const v = document.createElement('div'); v.className = 'visor'; v.setAttribute('role','dialog'); v.setAttribute('aria-label','Foto');
+  v.innerHTML = `<img src="${esc(src)}" alt="Foto del equipo"><button type="button" aria-label="Cerrar">×</button>`;
+  (document.querySelector('dialog[open]') || document.body).appendChild(v);   // dentro del diálogo abierto, para que quede encima
+}
 async function alElegirFoto(ev){
   const file = ev.target.files && ev.target.files[0]; if (!file || !S.actual || !fotoPend) return;
   const e = S.actual, tipo = fotoPend;
@@ -1421,7 +1437,8 @@ document.addEventListener('click', ev => {
   if (vg){ const f = filtroDe('taller'); f.grupos = vg.dataset.vergrupo ? [vg.dataset.vergrupo] : []; f.zonas = vg.dataset.verzona ? [vg.dataset.verzona] : (filtroDe('inicio').zonas.slice()); if (!vg.dataset.vergrupo) f.grupos = filtroDe('inicio').grupos.slice(); f.estado = ''; f.q = ''; guardarFiltros(); ir('taller'); return; }
   const eq = t.closest('[data-eq]'); if (eq){ ev.preventDefault(); abrirEquipo(eq.dataset.eq); return; }
   const fo = t.closest('[data-foto]'); if (fo){ pedirFoto(fo.dataset.foto, fo.dataset.modo); return; }
-  const ver = t.closest('[data-ver]'); if (ver){ const img = ver.querySelector('img'); if (img) window.open(img.src.startsWith('data:') ? img.src : img.src.replace(/sz=w\d+/, 'sz=w2000'), '_blank'); return; }
+  const ver = t.closest('[data-ver], #dFoto'); if (ver){ const img = ver.querySelector('img'); if (img) verFoto(img.src.startsWith('data:') ? img.src : img.src.replace(/sz=w\d+/, 'sz=w2400')); return; }
+  if (t.closest('.visor')) { t.closest('.visor').remove(); return; }
   const ce = t.closest('[data-cerrar]'); if (ce){ ce.closest('dialog').close(); return; }
   const sw = t.closest('.vista-sw button'); if (sw){ const k = sw.parentElement.dataset.sw; S.vistaLista[k] = sw.dataset.v; $$('button', sw.parentElement).forEach(b => b.classList.toggle('activo', b === sw)); pintarLista(k); return; }
   const ac = t.closest('[data-accion]');
