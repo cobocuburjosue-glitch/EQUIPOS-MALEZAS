@@ -268,6 +268,10 @@ td.ahora.mal,.tag.mal{color:var(--atraso)}
 td.ahora.nuevo,.tag.nuevo{color:var(--cielo)}
 .badge{min-width:18px;height:18px;border-radius:9px;background:var(--atraso);color:#fff;font-size:11px;display:grid;place-items:center;padding:0 5px;margin-left:auto}
 .limpiar-f{display:flex;flex-direction:column;justify-content:flex-end}
+.fila-chips{display:grid;grid-template-columns:118px minmax(0,1fr);align-items:center;gap:10px}
+.fila-chips .lbl{font-size:12.5px;color:var(--suave);font-weight:500;letter-spacing:.02em}
+@media (min-width:901px){.fila-chips .chips{flex-wrap:wrap}}
+@media (max-width:600px){.fila-chips{grid-template-columns:1fr;gap:4px}}
 
 /* ---------- mapa ---------- */
 #mapa{height:min(68vh,640px);border-radius:var(--radio);overflow:hidden;border:1px solid var(--borde)}
@@ -634,6 +638,11 @@ function chipsZona(v, base){
   const f = filtroDe(v), cuenta = {}; base.forEach(e => cuenta[e.zona] = (cuenta[e.zona]||0) + 1);
   return `<div class="chips" role="group" aria-label="Zona" data-chips="zonas"><button type="button" class="chip ${f.zonas.length?'':'activo'}" data-z="">Todas las zonas</button>${todasZonas().map(z => `<button type="button" class="chip ${f.zonas.includes(z)?'activo':''}" data-z="${esc(z)}">${esc(z)}<b>${cuenta[z]||0}</b></button>`).join('')}</div>`;
 }
+function chipsTipo(v, base){
+  const f = filtroDe(v), baseZ = base.filter(e => !f.zonas.length || f.zonas.includes(e.zona));
+  const grupos = {}; S.equipos.forEach(e => grupos[e.grupo] = 0); baseZ.forEach(e => grupos[e.grupo]++);
+  return `<div class="chips" role="group" aria-label="Tipo de equipo" data-chips="grupos"><button type="button" class="chip ${f.grupos.length?'':'activo'}" data-g="">Todos los tipos<b>${baseZ.length}</b></button>${Object.entries(grupos).sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0])).map(([g,n]) => `<button type="button" class="chip ${f.grupos.includes(g)?'activo':''}" data-g="${esc(g)}">${esc(bonito(g))}<b>${n}</b></button>`).join('')}</div>`;
+}
 function pintarFiltros(v, base){
   const f = filtroDe(v), cont = $(`[data-filtros="${v}"]`);
   const baseZ = base.filter(e => !f.zonas.length || f.zonas.includes(e.zona));
@@ -645,11 +654,11 @@ function pintarFiltros(v, base){
   const opsEstado = v === 'taller' ? '<option value="">Todos</option><option value="taller">En reparación</option><option value="sin">Pendiente de ingreso</option>'
     : '<option value="">Todos</option><option value="campo">Listo · en campo</option><option value="taller">En reparación</option><option value="sin">Pendiente de ingreso</option>';
   cont.innerHTML = `
-    ${chipsZona(v, base)}
-    <div class="chips" role="group" aria-label="Tipo de equipo" data-chips="grupos">
+    <div class="fila-chips"><span class="lbl">Zona</span>${chipsZona(v, base.filter(e => !f.grupos.length || f.grupos.includes(e.grupo)))}</div>
+    <div class="fila-chips"><span class="lbl">Tipo de equipo</span><div class="chips" role="group" aria-label="Tipo de equipo" data-chips="grupos">
       <button type="button" class="chip ${f.grupos.length?'':'activo'}" data-g="">Todos los tipos<b>${baseZ.length}</b></button>
       ${Object.entries(grupos).sort((a,b) => b[1]-a[1]).map(([g,n]) => `<button type="button" class="chip ${f.grupos.includes(g)?'activo':''}" data-g="${esc(g)}">${esc(bonito(g))}<b>${n}</b></button>`).join('')}
-    </div>
+    </div></div>
     <div class="fila-f">
       <div class="busca"><label for="fq_${v}">Buscar</label><input type="search" id="fq_${v}" data-f="q" placeholder="Código, descripción, ubicación…" value="${esc(f.q)}"></div>
       ${conEstado ? `<div><label for="fe_${v}">Estado</label><select id="fe_${v}" data-f="estado">${opsEstado}</select></div>` : '<div></div>'}
@@ -779,8 +788,9 @@ function resumenZona(zona, E){
 }
 /** Matriz de equipos en reparación por zona y grupo */
 function matriz(E){
+  const fg = filtroDe('inicio').grupos;
   const zonas = [...new Set(E.map(e => e.zona))].sort(ordenZona);
-  const grupos = [...new Set(S.equipos.map(e => e.grupo))].sort((a,b) => S.equipos.filter(e => e.grupo === b).length - S.equipos.filter(e => e.grupo === a).length);
+  const grupos = [...new Set(S.equipos.map(e => e.grupo))].filter(g => !fg.length || fg.includes(g)).sort((a,b) => S.equipos.filter(e => e.grupo === b).length - S.equipos.filter(e => e.grupo === a).length);
   const R = E.filter(enRep), n = (g, z) => R.filter(e => (!g || e.grupo === g) && (!z || e.zona === z)).length;
   const c = (v, g, z) => v ? `<td class="num v" data-vergrupo="${esc(g||'')}" data-verzona="${esc(z||'')}">${v}</td>` : '<td class="num cero">·</td>';
   return `<div class="tabla-wrap"><table class="t matriz"><thead><tr><th>Grupo</th>${zonas.map(z => `<th class="num">${esc(z)}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>
@@ -789,14 +799,21 @@ function matriz(E){
 }
 function pintarInicio(){
   const f = filtroDe('inicio');
-  $('#filtroInicio').innerHTML = chipsZona('inicio', S.equipos);
-  $('#filtroInicio').onclick = ev => { const c = ev.target.closest('.chip'); if (!c) return; alternar(f.zonas, c.dataset.z); guardarFiltros(); pintarInicio(); };
-  const E = S.equipos.filter(e => !f.zonas.length || f.zonas.includes(e.zona)), H = hoy();
+  $('#filtroInicio').innerHTML = `<div class="fila-chips"><span class="lbl">Zona</span>${chipsZona('inicio', S.equipos.filter(e => !f.grupos.length || f.grupos.includes(e.grupo)))}</div>
+    <div class="fila-chips"><span class="lbl">Tipo de equipo</span>${chipsTipo('inicio', S.equipos)}</div>
+    ${f.zonas.length || f.grupos.length ? '<div><button type="button" class="btn peq" data-limpiar-inicio>Quitar filtros</button></div>' : ''}`;
+  $('#filtroInicio').onclick = ev => {
+    if (ev.target.closest('[data-limpiar-inicio]')) { f.zonas = []; f.grupos = []; guardarFiltros(); return pintarInicio(); }
+    const c = ev.target.closest('.chip'); if (!c) return;
+    if (c.dataset.z !== undefined) alternar(f.zonas, c.dataset.z); else alternar(f.grupos, c.dataset.g);
+    guardarFiltros(); pintarInicio();
+  };
+  const E = S.equipos.filter(e => (!f.zonas.length || f.zonas.includes(e.zona)) && (!f.grupos.length || f.grupos.includes(e.grupo))), H = hoy();
   const campo = E.filter(e => e.estado === 'campo').length, rep = E.filter(enRep), sin = E.filter(e => e.estado === 'sin').length;
   const atr = rep.filter(e => e.atraso > 0);
   const hora = new Date().getHours();
   $('#saludo').textContent = `${hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches'}, ${S.ses?.usuario?.nombre?.split(' ')[0] || ''}`.trim();
-  $('#subResumen').textContent = `Resumen al ${H.toLocaleDateString('es-GT', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}${f.zonas.length ? ' · ' + f.zonas.join(', ') : ' · todas las zonas'}`;
+  $('#subResumen').textContent = `Resumen al ${H.toLocaleDateString('es-GT', { weekday:'long', day:'numeric', month:'long', year:'numeric' })} · ${f.zonas.length ? f.zonas.join(', ') : 'todas las zonas'} · ${f.grupos.length ? f.grupos.map(bonito).join(', ') : 'todos los tipos'}`;
   $('#ultimaCarga').textContent = S.ultimaCarga ? 'Última carga de Excel: ' + S.ultimaCarga : '';
   const k = (t, n, sub, c, irA) => `<button type="button" class="kpi vidrio" style="--c:${c}" data-ir="${irA}"><small>${t}</small><b>${n}</b><span>${sub}</span></button>`;
   const enTaller = rep.filter(e => e.estado === 'taller');
@@ -824,7 +841,7 @@ function pintarCambios(){
   const A = S.actualizaciones || [];
   const f = filtroDe('cambios');
   const cont = $('#listaCambios');
-  $('#filtroCambios').innerHTML = chipsZona('cambios', A.map(a => ({ zona: a.zona })));
+  $('#filtroCambios').innerHTML = `<div class="fila-chips"><span class="lbl">Zona</span>${chipsZona('cambios', A.map(a => ({ zona: a.zona })))}</div>`;
   $('#filtroCambios').onclick = ev => { const c = ev.target.closest('.chip'); if (!c) return; alternar(f.zonas, c.dataset.z); guardarFiltros(); pintarCambios(); };
   if (!A.length){
     cont.innerHTML = `<div class="vacio vidrio">Todavía no hay actualizaciones.<br><br>Cada vez que se carga un Excel nuevo, la app lo compara con el anterior y aquí aparece qué equipos cambiaron: los que quedaron listos, los que regresaron a taller, los nuevos y los que ya no están.</div>`;
@@ -1055,7 +1072,7 @@ async function confirmarExcel(){
 let repGrupos = new Set(), repZonas = [];
 function abrirReporte(){
   const grupos = [...new Set(S.equipos.map(e => e.grupo))].sort();
-  repGrupos = new Set(grupos);
+  repGrupos = new Set(filtroDe('inicio').grupos.length ? filtroDe('inicio').grupos : grupos);
   repZonas = filtroDe('inicio').zonas.slice();
   const pinta = () => {
     $('#rGrupos').innerHTML = `<button type="button" class="chip ${repGrupos.size === grupos.length ? 'activo' : ''}" data-rg="*">Todos</button>` + grupos.map(g => `<button type="button" class="chip ${repGrupos.has(g) && repGrupos.size !== grupos.length ? 'activo' : ''}" data-rg="${esc(g)}">${esc(bonito(g))}</button>`).join('');
@@ -1283,7 +1300,7 @@ document.addEventListener('click', ev => {
     ir(v); return;
   }
   const vg = t.closest('[data-vergrupo]');
-  if (vg){ const f = filtroDe('taller'); f.grupos = vg.dataset.vergrupo ? [vg.dataset.vergrupo] : []; f.zonas = vg.dataset.verzona ? [vg.dataset.verzona] : (filtroDe('inicio').zonas.slice()); f.estado = ''; f.q = ''; guardarFiltros(); ir('taller'); return; }
+  if (vg){ const f = filtroDe('taller'); f.grupos = vg.dataset.vergrupo ? [vg.dataset.vergrupo] : []; f.zonas = vg.dataset.verzona ? [vg.dataset.verzona] : (filtroDe('inicio').zonas.slice()); if (!vg.dataset.vergrupo) f.grupos = filtroDe('inicio').grupos.slice(); f.estado = ''; f.q = ''; guardarFiltros(); ir('taller'); return; }
   const eq = t.closest('[data-eq]'); if (eq){ ev.preventDefault(); abrirEquipo(eq.dataset.eq); return; }
   const fo = t.closest('[data-foto]'); if (fo){ pedirFoto(fo.dataset.foto, fo.dataset.modo); return; }
   const ver = t.closest('[data-ver]'); if (ver){ const img = ver.querySelector('img'); if (img) window.open(img.src.startsWith('data:') ? img.src : img.src.replace(/sz=w\d+/, 'sz=w2000'), '_blank'); return; }
