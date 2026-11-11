@@ -76,6 +76,52 @@ function mapa_(sh) {
   return m;
 }
 
+/* ============================== estado de un equipo ============================== */
+
+const MESES_ = {ENERO:1,FEBRERO:2,MARZO:3,ABRIL:4,MAYO:5,JUNIO:6,JULIO:7,AGOSTO:8,SEPTIEMBRE:9,SETIEMBRE:9,OCTUBRE:10,NOVIEMBRE:11,DICIEMBRE:12};
+function fecha_(v) {
+  if (v instanceof Date) return isNaN(v) ? null : v;
+  const t = norm_(v); let m;
+  if (!t) return null;
+  if ((m = t.match(/^(\d{4})-(\d{2})-(\d{2})/))) return new Date(+m[1], m[2] - 1, +m[3]);
+  if ((m = t.match(/(\d{1,2}) DE ([A-Z]+) DE (\d{4})/)) && MESES_[m[2]]) return new Date(+m[3], MESES_[m[2]] - 1, +m[1]);
+  if ((m = t.match(/([A-Z]+) (\d{1,2}),? (\d{4})/)) && MESES_[m[1]]) return new Date(+m[3], MESES_[m[1]] - 1, +m[2]);
+  if ((m = t.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/))) return new Date(+m[3] < 100 ? 2000 + +m[3] : +m[3], m[2] - 1, +m[1]);
+  return null;
+}
+function col_(enc, prueba) { return enc.map(norm_).findIndex(prueba); }
+
+/** Foto de cada equipo en una tabla: { codigo: {zona, equipo, grupo, estado} } */
+function fotoEstados_(enc, filas) {
+  const ic = col_(enc, h => h === 'CODIGO DE EQUIPO'), iz = col_(enc, h => h === 'ZONA'), id = col_(enc, h => h.indexOf('DESCRIPCION') === 0),
+        ig = col_(enc, h => h.indexOf('GRUPO') === 0), ii = col_(enc, h => h.indexOf('FECHA REAL DE INGRESO') === 0),
+        isal = col_(enc, h => h.indexOf('FECHA QUE EL EQUIPO') === 0), io = col_(enc, h => h === 'OBSERVACIONES');
+  const out = {};
+  if (ic < 0) return out;
+  filas.forEach(r => {
+    let cod = String(r[ic] == null ? '' : r[ic]).trim(); if (!cod) return;
+    while (out[cod]) cod += ' (2)';
+    const ing = ii >= 0 ? fecha_(r[ii]) : null, sal = isal >= 0 ? fecha_(r[isal]) : null;
+    const obs = io >= 0 ? texto_(r[io], 200) : '';
+    let est = sal ? 'Listo ' + Utilities.formatDate(sal, TZ, 'dd/MM/yyyy') : ing ? 'En reparación' : 'Pendiente de ingreso';
+    if (obs) est += ' (' + obs + ')';
+    const z = iz >= 0 ? String(r[iz] == null ? '' : r[iz]).trim() : '';
+    out[cod] = { zona: /^\d+$/.test(z) ? 'Zona ' + z : z, equipo: id >= 0 ? texto_(r[id], 120) : '', grupo: ig >= 0 ? texto_(r[ig], 80) : '', estado: est, listo: !!sal };
+  });
+  return out;
+}
+
+function hojaActualizaciones_() {
+  const ss = ss_();
+  let sh = ss.getSheetByName('ACTUALIZACIONES');
+  if (!sh) {
+    sh = ss.insertSheet('ACTUALIZACIONES');
+    sh.getRange(1, 1, 1, 10).setValues([['FECHA CARGA', 'CODIGO DE EQUIPO', 'ZONA', 'EQUIPO', 'GRUPO', 'ANTES', 'AHORA', 'TIPO', 'CARGADO POR', 'ARCHIVO']]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+  }
+  return sh;
+}
+
 /* ============================== web app ============================== */
 
 function doGet(e) {
@@ -173,8 +219,19 @@ function datos_(u) {
       catalogo[cod] = o;
     });
   }
+  const actualizaciones = [];
+  const la = ss_().getSheetByName('ACTUALIZACIONES');
+  if (la && la.getLastRow() > 1) {
+    const ini = Math.max(2, la.getLastRow() - 1499);
+    la.getRange(ini, 1, la.getLastRow() - ini + 1, 10).getValues().forEach(r => {
+      if (!r[1]) return;
+      actualizaciones.push({ fecha: r[0] instanceof Date ? Utilities.formatDate(r[0], TZ, "yyyy-MM-dd'T'HH:mm") : String(r[0]), codigo: String(r[1]), zona: String(r[2]), equipo: String(r[3]),
+        grupo: String(r[4]), antes: String(r[5]), ahora: String(r[6]), tipo: String(r[7]), por: String(r[8]), archivo: String(r[9]) });
+    });
+  }
   const props = PropertiesService.getScriptProperties();
   return {
+    actualizaciones: actualizaciones,
     ok: true,
     usuario: { usuario: u.usuario, nombre: u.nombre, rol: u.rol },
     encabezados: encabezados, filas: filas, catalogo: catalogo,
@@ -261,6 +318,7 @@ function cargarExcel_(u, p) {
   if (enc.map(norm_).indexOf('CODIGO DE EQUIPO') < 0) return { ok: false, error: 'El Excel no tiene la columna "CODIGO DE EQUIPO".' };
   if (!filas.length) return { ok: false, error: 'El Excel no tiene filas.' };
 
+  let cambios = 0;
   const lock = LockService.getScriptLock(); lock.waitLock(30000);
   try {
     const ss = ss_(), sh = hojaDatos_();
@@ -272,6 +330,27 @@ function cargarExcel_(u, p) {
       rsp.getRange(1, 1, old.length, old[0].length).setValues(old);
     }
     rsp.hideSheet();
+
+    // ---- comparar lo que había contra el Excel nuevo -> pestaña ACTUALIZACIONES
+    if (sh.getLastRow() > 1) {
+      const old = sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).getValues();
+      const antes = fotoEstados_(old[0].map(String), old.slice(1));
+      const nuevaFilas = filas.map(r => r.map(v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? fecha_(v) : v));
+      const ahora = fotoEstados_(enc, nuevaFilas);
+      const marca = new Date(), filasLog = [];
+      Object.keys(ahora).forEach(c => {
+        const a = antes[c], n = ahora[c];
+        if (!a) filasLog.push([marca, c, n.zona, n.equipo, n.grupo, '—', n.estado, 'NUEVO', u.nombre, texto_(p.archivoNombre, 120)]);
+        else if (a.estado !== n.estado) filasLog.push([marca, c, n.zona, n.equipo, n.grupo, a.estado, n.estado, n.listo && !a.listo ? 'LISTO' : (!n.listo && a.listo ? 'REGRESO A TALLER' : 'CAMBIO'), u.nombre, texto_(p.archivoNombre, 120)]);
+      });
+      Object.keys(antes).forEach(c => { if (!ahora[c]) { const a = antes[c]; filasLog.push([marca, c, a.zona, a.equipo, a.grupo, a.estado, 'Ya no está en el Excel', 'QUITADO', u.nombre, texto_(p.archivoNombre, 120)]); } });
+      if (filasLog.length) {
+        const la = hojaActualizaciones_();
+        la.getRange(la.getLastRow() + 1, 1, filasLog.length, filasLog[0].length).setValues(filasLog);
+        la.getRange(2, 1, la.getLastRow() - 1, 1).setNumberFormat('dd/MM/yyyy HH:mm');
+      }
+      cambios = filasLog.length;
+    }
 
     const n = enc.length;
     const valores = [enc].concat(filas.map(r => {
@@ -301,7 +380,7 @@ function cargarExcel_(u, p) {
     }
     PropertiesService.getScriptProperties().setProperty('ultimaCarga', ahora_() + ' · ' + u.nombre + ' · ' + texto_(p.archivoNombre, 120));
   } finally { lock.releaseLock(); }
-  return { ok: true, filas: filas.length };
+  return { ok: true, filas: filas.length, cambios: cambios };
 }
 
 /* ============================== permisos ============================== */

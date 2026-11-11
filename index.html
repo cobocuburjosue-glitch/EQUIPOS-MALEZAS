@@ -106,8 +106,9 @@ select option{background:#0b141c}
   .movil-top img{height:34px}
   .movil-top b{flex:1;font-size:15px;line-height:1.1}
   .movil-top b span{display:block;font-weight:400;font-size:12px;color:var(--suave)}
-  .tabbar{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:30;padding:6px;border-radius:20px}
-  .tabbar .nav{flex-direction:column;gap:2px;padding:7px 2px;font-size:11px;justify-content:center;text-align:center}
+  .tabbar{display:grid;grid-template-columns:repeat(6,1fr);position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:30;padding:5px;border-radius:20px}
+  .tabbar .nav{flex-direction:column;gap:2px;padding:7px 1px;font-size:10.5px;justify-content:center;text-align:center;position:relative;white-space:nowrap}
+  .tabbar .nav .badge{position:absolute;top:2px;right:4px;margin:0}
   .barra h1{font-size:23px}
 }
 
@@ -154,7 +155,7 @@ select option{background:#0b141c}
 .chip b{font-weight:600;margin-left:5px;color:var(--tenue)}
 .chip.activo{background:linear-gradient(120deg,rgba(45,226,198,.25),rgba(107,255,158,.18));border-color:rgba(45,226,198,.6);color:var(--tinta)}
 .chip.activo b{color:var(--aqua)}
-.fila-f{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px}
+.fila-f{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px}
 @media (max-width:700px){.fila-f{grid-template-columns:1fr 1fr}.fila-f .busca{grid-column:1/-1}}
 .conteo{font-size:13px;color:var(--suave);margin:0 2px 10px}
 
@@ -231,6 +232,43 @@ dialog::backdrop{background:rgba(2,5,9,.72);backdrop-filter:blur(6px)}
 .solo-lectura .solo-admin{display:none!important}
 .nota{color:var(--suave);font-size:13px;margin:0}
 
+/* ---------- zonas / matriz / actualizaciones ---------- */
+.sec-tit{font-size:21px;margin:22px 2px 12px}
+.zonas{display:grid;gap:14px}
+.zona{padding:18px}
+.zona h2{font-size:21px;margin-bottom:14px}
+.zona-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.zona-2 > div{min-width:0}
+@media (max-width:1000px){.zona-2{grid-template-columns:1fr}}
+.zona h3{font-size:15px;display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.zona h3 small{color:var(--tenue);font-weight:400;font-size:13.5px}
+.bola{width:14px;height:14px;border-radius:50%;display:inline-block;box-shadow:0 0 12px currentColor}
+table.tz td{vertical-align:top}
+table.tz tr{cursor:default}
+.its{display:grid;gap:3px}
+.its .it{cursor:pointer;line-height:1.35}
+.its .it:hover{color:var(--aqua)}
+.its .it.mal{color:#ff8fa6}
+.its .it b{font-weight:500}
+table.matriz th,table.matriz td{text-align:center}
+table.matriz th:first-child,table.matriz td:first-child{text-align:left}
+table.matriz tr{cursor:default}
+table.matriz td.v{color:var(--taller);font-weight:600;cursor:pointer}
+table.matriz td.v:hover{background:rgba(255,200,87,.12)}
+table.matriz td.cero{color:var(--tenue)}
+table.matriz tr.tot td{border-top:1px solid var(--borde-2);background:rgba(255,255,255,.03)}
+.cambio h2{margin-bottom:4px}
+#listaCambios > *,.zonas > *{min-width:0}
+.cambio td.mono,table.tz td .mono{white-space:nowrap}
+@media (max-width:600px){.cambio{padding:14px}.cambio table.t{font-size:12.5px}.cambio table.t td,.cambio table.t th{padding:8px}}
+td.antes{color:var(--tenue)}
+td.ahora{font-weight:600}
+td.ahora.ok,.tag.ok{color:var(--campo)}
+td.ahora.mal,.tag.mal{color:var(--atraso)}
+td.ahora.nuevo,.tag.nuevo{color:var(--cielo)}
+.badge{min-width:18px;height:18px;border-radius:9px;background:var(--atraso);color:#fff;font-size:11px;display:grid;place-items:center;padding:0 5px;margin-left:auto}
+.limpiar-f{display:flex;flex-direction:column;justify-content:flex-end}
+
 /* ---------- mapa ---------- */
 #mapa{height:min(68vh,640px);border-radius:var(--radio);overflow:hidden;border:1px solid var(--borde)}
 .leaflet-container{background:#0b141c;font:inherit}
@@ -305,18 +343,21 @@ dialog::backdrop{background:rgba(2,5,9,.72);backdrop-filter:blur(6px)}
         <button class="btn prim" type="button" id="btnExcel">Elegir Excel</button>
         <input type="file" id="archivoExcel" accept=".xlsx,.xls,.xlsm,.csv" hidden>
       </section>
+      <div class="filtros vidrio" id="filtroInicio" aria-label="Filtrar por zona"></div>
       <div class="kpis" id="kpis"></div>
+      <section class="panel vidrio" style="margin-bottom:14px"><h2>Equipos en reparación por zona y grupo <span class="nota der" style="font-weight:400">Toque un número para ver los equipos</span></h2><div id="matriz"></div></section>
       <div class="rejilla">
         <section class="panel vidrio"><h2>Equipos por tipo</h2><div class="barras" id="barrasGrupo"></div>
-          <div class="leyenda"><span><i style="background:var(--campo)"></i>En campo</span><span><i style="background:var(--taller)"></i>En taller</span><span><i style="background:var(--atraso)"></i>En taller con atraso</span><span><i style="background:var(--sin)"></i>Sin ingreso a taller</span></div></section>
-        <section class="panel vidrio"><h2>Más atrasados en taller <button class="btn peq der" type="button" data-ir="taller">Ver todos</button></h2><div class="lista-mini" id="topAtraso"></div></section>
+          <div class="leyenda"><span><i style="background:var(--campo)"></i>Listo · en campo</span><span><i style="background:var(--taller)"></i>En reparación</span><span><i style="background:var(--atraso)"></i>Vencido</span><span><i style="background:var(--sin)"></i>Pendiente de ingreso</span></div></section>
+        <section class="panel vidrio"><h2>Más vencidos <button class="btn peq der" type="button" data-ir="taller">Ver todos</button></h2><div class="lista-mini" id="topAtraso"></div></section>
       </div>
-      <section class="panel vidrio" style="margin-top:14px"><h2>Equipos por zona</h2><div class="barras" id="barrasZona"></div></section>
+      <h2 class="sec-tit">Resumen por zona</h2>
+      <div id="zonasResumen" class="zonas"></div>
     </section>
 
     <!-- TALLER -->
     <section data-vista="taller" class="oculto">
-      <div class="barra"><div class="tit"><h1>Equipos en taller</h1><p>Fecha de ingreso vs. fecha de salida y días que se pasó de salir.</p></div><div class="vista-sw" data-sw="taller"><button type="button" data-v="tarjetas" class="activo">Tarjetas</button><button type="button" data-v="tabla">Tabla</button></div></div>
+      <div class="barra"><div class="tit"><h1>Equipos en reparación</h1><p>En taller y pendientes de ingreso: fecha de ingreso, fecha requerida y días vencidos.</p></div><div class="vista-sw" data-sw="taller"><button type="button" data-v="tarjetas" class="activo">Tarjetas</button><button type="button" data-v="tabla">Tabla</button></div></div>
       <div class="filtros vidrio" data-filtros="taller"></div>
       <p class="conteo" id="conteoTaller"></p>
       <div id="listaTaller"></div>
@@ -324,7 +365,7 @@ dialog::backdrop{background:rgba(2,5,9,.72);backdrop-filter:blur(6px)}
 
     <!-- CAMPO -->
     <section data-vista="campo" class="oculto">
-      <div class="barra"><div class="tit"><h1>Equipos en campo</h1><p>Fecha en que el taller los entregó.</p></div><div class="vista-sw" data-sw="campo"><button type="button" data-v="tarjetas" class="activo">Tarjetas</button><button type="button" data-v="tabla">Tabla</button></div></div>
+      <div class="barra"><div class="tit"><h1>Equipos listos en campo</h1><p>Fecha en que el taller los entregó.</p></div><div class="vista-sw" data-sw="campo"><button type="button" data-v="tarjetas" class="activo">Tarjetas</button><button type="button" data-v="tabla">Tabla</button></div></div>
       <div class="filtros vidrio" data-filtros="campo"></div>
       <p class="conteo" id="conteoCampo"></p>
       <div id="listaCampo"></div>
@@ -344,6 +385,13 @@ dialog::backdrop{background:rgba(2,5,9,.72);backdrop-filter:blur(6px)}
       <div class="filtros vidrio" data-filtros="mapa"></div>
       <div id="mapa"></div>
       <section class="panel vidrio" style="margin-top:14px"><h2>Sin ubicación GPS</h2><p class="nota" style="margin-bottom:10px">Abra el equipo en el catálogo y toque <b>Usar mi ubicación</b> estando junto a él.</p><div class="lista-mini" id="sinGps"></div></section>
+    </section>
+
+    <!-- ACTUALIZACIONES -->
+    <section data-vista="cambios" class="oculto">
+      <div class="barra"><div class="tit"><h1>Actualizaciones</h1><p>Qué cambió en cada carga del Excel: equipos que quedaron listos, que regresaron a taller, nuevos o que ya no están.</p></div></div>
+      <div class="filtros vidrio" id="filtroCambios"></div>
+      <div id="listaCambios" style="display:grid;gap:14px"></div>
     </section>
   </main>
 
@@ -400,11 +448,12 @@ dialog::backdrop{background:rgba(2,5,9,.72);backdrop-filter:blur(6px)}
   <div class="dlg">
     <div class="dlg-cab"><h2 id="rTitulo">Generar reporte</h2><button class="cerrar" type="button" data-cerrar aria-label="Cerrar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="dlg-cuerpo">
-      <p class="nota">El reporte en PDF incluye el resumen de cuántos equipos hay trabajando en campo y cuántos en taller, el detalle por tipo y zona, los equipos en taller con sus días de atraso y las observaciones del catálogo.</p>
+      <p class="nota">El PDF trae el resumen general (listos en campo y en reparación), la tabla de equipos en reparación por zona y grupo, una hoja por zona con listos y en reparación, la última actualización, las observaciones y el conteo de boquillas, bajantes y filtros.</p>
       <div><label>Tipo de equipo</label><div class="chips" id="rGrupos"></div></div>
+      <div><label>Zonas</label><div class="chips" id="rZonas" style="flex-wrap:wrap"></div></div>
       <div class="ubic">
-        <div><label for="rZona">Zona</label><select id="rZona"></select></div>
-        <div><label for="rDetalle">Incluir lista de equipos</label><select id="rDetalle"><option value="taller">Solo equipos en taller</option><option value="todos">Taller y campo</option><option value="no">No, solo el resumen</option></select></div>
+        <div><label for="rDetalle">Incluir lista de equipos</label><select id="rDetalle"><option value="taller">Solo equipos en reparación</option><option value="todos">En reparación y en campo</option><option value="no">No, solo los resúmenes</option></select></div>
+        <div><label for="rCambios">Actualizaciones</label><select id="rCambios"><option value="1">Incluir la última actualización</option><option value="0">No incluir</option></select></div>
       </div>
     </div>
     <div class="dlg-pie"><button class="btn" type="button" data-cerrar>Cancelar</button><button class="btn prim" type="button" id="btnPdf">Descargar PDF</button></div>
@@ -516,13 +565,12 @@ function construir(enc, filas){
     if (vistos[cod]) { vistos[cod]++; cod = `${cod} (${vistos[cod]})`; } else vistos[cod] = 1;
     const ingreso = fecha(v(r,'ingreso')), salida = fecha(v(r,'salida')), req = fecha(v(r,'requerimiento'));
     const periodo = parseInt(v(r,'periodo')) || DIAS_PERIODO;
-    // Fecha en que debía salir: la fecha de requerimiento del usuario. Si no hay, o quedó antes del ingreso
-    // (el equipo entró tarde), se usa ingreso + período para entrega (30 días).
-    const limite = req && (!ingreso || req >= ingreso) ? req : (ingreso ? new Date(ingreso.getTime() + periodo*864e5) : req);
+    // Fecha en que debía salir = FECHA DE REQUERIMIENTO del usuario (si no hay: ingreso + período para entrega).
+    const limite = req || (ingreso ? new Date(ingreso.getTime() + periodo*864e5) : null);
     let estado, diasTaller = null, atraso = 0;
     if (ingreso && !salida){ estado = 'taller'; diasTaller = dias(ingreso, H); atraso = limite ? Math.max(0, dias(limite, H)) : 0; }
     else if (salida){ estado = 'campo'; diasTaller = ingreso ? dias(ingreso, salida) : null; atraso = limite ? Math.max(0, dias(limite, salida)) : 0; }
-    else estado = 'sin';
+    else { estado = 'sin'; atraso = limite ? Math.max(0, dias(limite, H)) : 0; }
     const zonaRaw = v(r,'zona');
     lista.push({
       codigo: cod, desc: v(r,'desc'), grupo: nombreGrupo(v(r,'grupo') || v(r,'desc')), area: v(r,'area'),
@@ -534,7 +582,11 @@ function construir(enc, filas){
   return lista;
 }
 
-const ESTADOS = { campo:{t:'En campo',c:'e-campo'}, taller:{t:'En taller',c:'e-taller'}, sin:{t:'Sin ingreso',c:'e-sin'} };
+const ESTADOS = { campo:{t:'Listo · en campo',c:'e-campo'}, taller:{t:'En reparación',c:'e-taller'}, sin:{t:'Pendiente de ingreso',c:'e-sin'} };
+const enRep = e => e.estado !== 'campo';   // en reparación o pendiente de ingreso
+const ordenZona = (a, b) => { const r = z => /^Zona \d/.test(z) ? 0 : 1; return r(a) - r(b) || a.localeCompare(b, 'es', {numeric:true}); };
+const plural = g => { const w = bonito(g).split(' ')[0].toLowerCase(); const m = {bomba:'bombas',aguilón:'aguilones',aguilon:'aguilones',tanque:'tanques',camión:'camiones',camion:'camiones',motor:'motores'}; return m[w] || 'equipos'; };
+const fCorta = d => d ? `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}` : '—';
 const cat = cod => S.catalogo[cod] || {};
 const fotoUrl = (id, w=800) => id ? `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w${w}` : '';
 function fotoDe(cod, tipo='EQUIPO'){
@@ -550,12 +602,13 @@ const ICON = {
   taller:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',
   campo:'<path d="M3 20h18M5 20V10l4-3 4 3v10M13 20v-6h6v6"/><path d="M17 8c0-2 1.5-3.5 3-4"/>',
   catalogo:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
-  mapa:'<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>'
+  mapa:'<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+  cambios:'<path d="M12 8v4l3 2"/><path d="M3.05 11a9 9 0 1 1 .5 4M3 4v5h5"/>'
 };
-const VISTAS = [['inicio','Inicio'],['taller','En taller'],['campo','En campo'],['catalogo','Catálogo'],['mapa','Ubicación']];
+const VISTAS = [['inicio','Inicio','Inicio'],['taller','En reparación','Taller'],['campo','En campo','Campo'],['catalogo','Catálogo','Catálogo'],['mapa','Ubicación','Mapa'],['cambios','Actualizaciones','Actualiz.']];
 function pintarNav(){
-  const html = VISTAS.map(([k,t]) => `<button class="nav" type="button" data-ir="${k}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg><span>${t}</span></button>`).join('');
-  $('#navLado').innerHTML = html; $('#navMovil').innerHTML = html;
+  const h = corto => VISTAS.map(([k,t,c]) => `<button class="nav" type="button" data-ir="${k}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg><span>${corto ? c : t}</span>${k === 'cambios' ? '<b class="badge oculto"></b>' : ''}</button>`).join('');
+  $('#navLado').innerHTML = h(false); $('#navMovil').innerHTML = h(true);
 }
 function ir(v){
   S.vista = v;
@@ -569,33 +622,58 @@ function ir(v){
 /* ===================================================================
    FILTROS
    =================================================================== */
-function filtroDe(v){ return S.filtros[v] || (S.filtros[v] = { grupo:'', zona:'', q:'', orden: v === 'taller' ? 'atraso' : 'codigo', estado:'' }); }
+function filtroDe(v){
+  if (!S.filtros[v]) S.filtros[v] = { grupos:[], zonas:[], q:'', orden: v === 'taller' ? 'atraso' : 'codigo', estado:'' };
+  const f = S.filtros[v]; if (!Array.isArray(f.grupos)) f.grupos = []; if (!Array.isArray(f.zonas)) f.zonas = [];
+  return f;
+}
+function guardarFiltros(){ try { localStorage.setItem('cat_filtros', JSON.stringify(Object.fromEntries(Object.entries(S.filtros).map(([k,f]) => [k, { grupos:f.grupos, zonas:f.zonas, orden:f.orden, estado:f.estado }])))); } catch(e){} }
+function cargarFiltros(){ try { const o = JSON.parse(localStorage.getItem('cat_filtros') || '{}'); Object.entries(o).forEach(([k,f]) => S.filtros[k] = Object.assign({ q:'' }, f)); } catch(e){} }
+const todasZonas = () => [...new Set(S.equipos.map(e => e.zona))].sort(ordenZona);
+function chipsZona(v, base){
+  const f = filtroDe(v), cuenta = {}; base.forEach(e => cuenta[e.zona] = (cuenta[e.zona]||0) + 1);
+  return `<div class="chips" role="group" aria-label="Zona" data-chips="zonas"><button type="button" class="chip ${f.zonas.length?'':'activo'}" data-z="">Todas las zonas</button>${todasZonas().map(z => `<button type="button" class="chip ${f.zonas.includes(z)?'activo':''}" data-z="${esc(z)}">${esc(z)}<b>${cuenta[z]||0}</b></button>`).join('')}</div>`;
+}
 function pintarFiltros(v, base){
   const f = filtroDe(v), cont = $(`[data-filtros="${v}"]`);
-  const grupos = {}; base.forEach(e => grupos[e.grupo] = (grupos[e.grupo]||0) + 1);
-  const zonas = [...new Set(S.equipos.map(e => e.zona))].sort((a,b) => a.localeCompare(b, 'es', {numeric:true}));
-  const ordenes = v === 'taller' ? [['atraso','Más días de atraso'],['dias','Más días en taller'],['ingreso','Fecha de ingreso'],['codigo','Código']]
-                : v === 'campo' ? [['salida','Salida más reciente'],['codigo','Código'],['grupo','Tipo de equipo']]
-                : [['codigo','Código'],['grupo','Tipo de equipo'],['estado','Estado']];
-  const estados = (v === 'catalogo' || v === 'mapa') ? `<div><label for="fe_${v}">Estado</label><select id="fe_${v}" data-f="estado"><option value="">Todos</option><option value="campo">En campo</option><option value="taller">En taller</option><option value="sin">Sin ingreso</option></select></div>` : `<div><label for="fo_${v}">Ordenar por</label><select id="fo_${v}" data-f="orden">${ordenes.map(([k,t]) => `<option value="${k}">${t}</option>`).join('')}</select></div>`;
+  const baseZ = base.filter(e => !f.zonas.length || f.zonas.includes(e.zona));
+  const grupos = {}; baseZ.forEach(e => grupos[e.grupo] = (grupos[e.grupo]||0) + 1);
+  const ordenes = v === 'taller' ? [['atraso','Más días de atraso'],['dias','Más días en taller'],['ingreso','Fecha de ingreso'],['zona','Zona'],['codigo','Código']]
+                : v === 'campo' ? [['salida','Salida más reciente'],['zona','Zona'],['codigo','Código'],['grupo','Tipo de equipo']]
+                : [['codigo','Código'],['zona','Zona'],['grupo','Tipo de equipo'],['estado','Estado']];
+  const conEstado = v === 'catalogo' || v === 'mapa' || v === 'taller';
+  const opsEstado = v === 'taller' ? '<option value="">Todos</option><option value="taller">En reparación</option><option value="sin">Pendiente de ingreso</option>'
+    : '<option value="">Todos</option><option value="campo">Listo · en campo</option><option value="taller">En reparación</option><option value="sin">Pendiente de ingreso</option>';
   cont.innerHTML = `
-    <div class="chips" role="group" aria-label="Tipo de equipo">
-      <button type="button" class="chip ${f.grupo?'':'activo'}" data-g="">Todos<b>${base.length}</b></button>
-      ${Object.entries(grupos).sort((a,b) => b[1]-a[1]).map(([g,n]) => `<button type="button" class="chip ${f.grupo===g?'activo':''}" data-g="${esc(g)}">${esc(bonito(g))}<b>${n}</b></button>`).join('')}
+    ${chipsZona(v, base)}
+    <div class="chips" role="group" aria-label="Tipo de equipo" data-chips="grupos">
+      <button type="button" class="chip ${f.grupos.length?'':'activo'}" data-g="">Todos los tipos<b>${baseZ.length}</b></button>
+      ${Object.entries(grupos).sort((a,b) => b[1]-a[1]).map(([g,n]) => `<button type="button" class="chip ${f.grupos.includes(g)?'activo':''}" data-g="${esc(g)}">${esc(bonito(g))}<b>${n}</b></button>`).join('')}
     </div>
     <div class="fila-f">
       <div class="busca"><label for="fq_${v}">Buscar</label><input type="search" id="fq_${v}" data-f="q" placeholder="Código, descripción, ubicación…" value="${esc(f.q)}"></div>
-      <div><label for="fz_${v}">Zona</label><select id="fz_${v}" data-f="zona"><option value="">Todas</option>${zonas.map(z => `<option ${f.zona===z?'selected':''}>${esc(z)}</option>`).join('')}</select></div>
-      ${estados}
-      ${(v === 'catalogo' || v === 'mapa') ? `<div><label for="fo_${v}">Ordenar por</label><select id="fo_${v}" data-f="orden">${ordenes.map(([k,t]) => `<option value="${k}">${t}</option>`).join('')}</select></div>` : '<div></div>'}
+      ${conEstado ? `<div><label for="fe_${v}">Estado</label><select id="fe_${v}" data-f="estado">${opsEstado}</select></div>` : '<div></div>'}
+      <div><label for="fo_${v}">Ordenar por</label><select id="fo_${v}" data-f="orden">${ordenes.map(([k,t]) => `<option value="${k}">${t}</option>`).join('')}</select></div>
+      <div class="limpiar-f"><label>&nbsp;</label><button type="button" class="btn" data-limpiar="${v}">Quitar filtros</button></div>
     </div>`;
-  $$('select[data-f]', cont).forEach(s => s.value = f[s.dataset.f] || s.value);
-  cont.onclick = e => { const c = e.target.closest('.chip'); if (!c) return; f.grupo = c.dataset.g; pintarVista(); };
-  cont.oninput = e => { const el = e.target.closest('[data-f]'); if (!el) return; f[el.dataset.f] = el.value; if (el.dataset.f === 'q') { clearTimeout(S._t); S._t = setTimeout(() => pintarLista(v), 180); } else pintarVista(); };
+  $$('select[data-f]', cont).forEach(s => s.value = f[s.dataset.f] || s.options[0].value);
+  cont.onclick = e => {
+    const c = e.target.closest('.chip'); if (!c) { const l = e.target.closest('[data-limpiar]'); if (l) { Object.assign(f, { grupos:[], zonas:[], q:'', estado:'' }); guardarFiltros(); pintarVista(); } return; }
+    if (c.dataset.z !== undefined) alternar(f.zonas, c.dataset.z, e);
+    else alternar(f.grupos, c.dataset.g, e);
+    guardarFiltros(); pintarVista();
+  };
+  cont.oninput = e => { const el = e.target.closest('[data-f]'); if (!el) return; f[el.dataset.f] = el.value; if (el.dataset.f === 'q') { clearTimeout(S._t); S._t = setTimeout(() => pintarLista(v), 180); } else { guardarFiltros(); pintarVista(); } };
+}
+/** Toca un chip: lo agrega o lo quita (selección múltiple). "Todas" limpia. */
+function alternar(arr, val, ev){
+  if (!val) { arr.length = 0; return; }
+  const i = arr.indexOf(val);
+  if (i >= 0) arr.splice(i, 1); else arr.push(val);
 }
 function aplicar(v, base){
   const f = filtroDe(v), q = norm(f.q);
-  let l = base.filter(e => (!f.grupo || e.grupo === f.grupo) && (!f.zona || e.zona === f.zona) && (!f.estado || e.estado === f.estado));
+  let l = base.filter(e => (!f.grupos.length || f.grupos.includes(e.grupo)) && (!f.zonas.length || f.zonas.includes(e.zona)) && (!f.estado || e.estado === f.estado));
   if (q) l = l.filter(e => norm([e.codigo, e.desc, e.grupo, e.zona, cat(e.codigo).DESCRIPCION, cat(e.codigo).UBICACION].join(' ')).includes(q));
   const porCod = (a,b) => a.codigo.localeCompare(b.codigo, 'es', {numeric:true});
   const O = {
@@ -604,6 +682,7 @@ function aplicar(v, base){
     dias: (a,b) => (b.diasTaller??0) - (a.diasTaller??0) || porCod(a,b),
     ingreso: (a,b) => (a.ingreso||0) - (b.ingreso||0) || porCod(a,b),
     salida: (a,b) => (b.salida||0) - (a.salida||0) || porCod(a,b),
+    zona: (a,b) => ordenZona(a.zona, b.zona) || porCod(a,b),
     grupo: (a,b) => a.grupo.localeCompare(b.grupo) || porCod(a,b),
     estado: (a,b) => a.estado.localeCompare(b.estado) || porCod(a,b)
   };
@@ -613,38 +692,37 @@ function aplicar(v, base){
 /* ===================================================================
    VISTAS
    =================================================================== */
+const baseDe = v => v === 'taller' ? S.equipos.filter(enRep) : v === 'campo' ? S.equipos.filter(e => e.estado === 'campo') : S.equipos;
 function pintarVista(){
   if (!S.equipos) return;
   const v = S.vista;
   if (v === 'inicio') return pintarInicio();
   if (v === 'mapa') return pintarMapa();
-  const base = v === 'taller' ? S.equipos.filter(e => e.estado === 'taller') : v === 'campo' ? S.equipos.filter(e => e.estado !== 'taller') : S.equipos;
-  pintarFiltros(v, base);
+  if (v === 'cambios') { const A = S.actualizaciones || []; if (A.length) { try { localStorage.setItem('cat_cambios_visto', A.map(a => a.fecha).sort().pop()); } catch(e){} marcarCambios(); } return pintarCambios(); }
+  pintarFiltros(v, baseDe(v));
   pintarLista(v);
 }
 function pintarLista(v){
-  const base = v === 'taller' ? S.equipos.filter(e => e.estado === 'taller') : v === 'campo' ? S.equipos.filter(e => e.estado !== 'taller') : S.equipos;
-  const l = aplicar(v, base);
+  const l = aplicar(v, baseDe(v));
   if (v === 'catalogo') return pintarCatalogo(l);
   const cont = v === 'taller' ? $('#listaTaller') : $('#listaCampo');
   if (v === 'taller'){
-    const atr = l.filter(e => e.atraso > 0).length;
-    $('#conteoTaller').textContent = `${l.length} equipo${l.length===1?'':'s'} en taller · ${atr} con atraso`;
+    const atr = l.filter(e => e.atraso > 0).length, sin = l.filter(e => e.estado === 'sin').length;
+    $('#conteoTaller').textContent = `${l.length} equipo${l.length===1?'':'s'} en reparación o pendientes${sin ? ` (${sin} pendiente${sin===1?'':'s'} de ingreso)` : ''} · ${atr} vencido${atr===1?'':'s'}`;
   } else {
-    const sin = l.filter(e => e.estado === 'sin').length;
-    $('#conteoCampo').textContent = `${l.length} equipo${l.length===1?'':'s'} en campo` + (sin ? ` · ${sin} sin ingreso a taller registrado` : '');
+    $('#conteoCampo').textContent = `${l.length} equipo${l.length===1?'':'s'} listo${l.length===1?'':'s'} y trabajando en campo`;
   }
   if (!l.length){ cont.innerHTML = '<div class="vacio vidrio">No hay equipos con esos filtros.</div>'; return; }
   const modo = S.vistaLista[v];
   if (modo === 'tabla') cont.innerHTML = v === 'taller' ? tablaTaller(l) : tablaCampo(l);
   else cont.innerHTML = `<div class="tarjetas">${l.map(e => v === 'taller' ? tarjetaTaller(e) : tarjetaCampo(e)).join('')}</div>`;
 }
-const atrasoHtml = e => e.atraso > 0 ? `<span class="atraso"><span class="punto"></span>${e.atraso} día${e.atraso===1?'':'s'} de atraso</span>` : `<span class="atraso ok"><span class="punto"></span>A tiempo</span>`;
+const atrasoHtml = e => e.atraso > 0 ? `<span class="atraso"><span class="punto"></span>Vencido ${e.atraso} día${e.atraso===1?'':'s'}</span>` : `<span class="atraso ok"><span class="punto"></span>A tiempo</span>`;
 function tarjetaTaller(e){
   return `<button type="button" class="eq vidrio" data-eq="${esc(e.codigo)}">
-    <div class="cab"><div><div class="cod">${esc(e.codigo)}</div><div class="desc">${esc(e.desc)}</div></div><span class="estado e-taller">En taller</span></div>
+    <div class="cab"><div><div class="cod">${esc(e.codigo)}</div><div class="desc">${esc(e.desc)}</div></div><span class="estado ${ESTADOS[e.estado].c}">${ESTADOS[e.estado].t}</span></div>
     <div class="meta"><span class="tag">${esc(bonito(e.grupo))}</span><span class="tag">${esc(e.zona)}</span></div>
-    <div class="datos"><div><small>Ingreso</small>${fTxt(e.ingreso)}</div><div><small>Debía salir</small>${fTxt(e.limite)}</div>
+    <div class="datos"><div><small>Ingreso</small>${e.estado === 'sin' ? 'Sin ingreso' : fTxt(e.ingreso)}</div><div><small>Requerido para</small>${fTxt(e.limite)}</div>
     <div><small>Días en taller</small>${e.diasTaller ?? '—'}</div><div><small>Salida</small>Pendiente</div></div>
     ${atrasoHtml(e)}</button>`;
 }
@@ -658,8 +736,8 @@ function tarjetaCampo(e){
     ${e.estado === 'campo' ? (e.atraso > 0 ? `<span class="atraso"><span class="punto"></span>Salió ${e.atraso} día${e.atraso===1?'':'s'} tarde</span>` : `<span class="atraso ok"><span class="punto"></span>Salió a tiempo</span>`) : ''}</button>`;
 }
 function tablaTaller(l){
-  return `<div class="tabla-wrap vidrio"><table class="t"><thead><tr><th>Código</th><th>Descripción</th><th>Tipo</th><th>Zona</th><th>Ingreso</th><th>Debía salir</th><th>Días en taller</th><th>Días de atraso</th></tr></thead><tbody>
-    ${l.map(e => `<tr data-eq="${esc(e.codigo)}"><td class="mono">${esc(e.codigo)}</td><td>${esc(e.desc)}</td><td>${esc(bonito(e.grupo))}</td><td>${esc(e.zona)}</td><td>${fTxt(e.ingreso)}</td><td>${fTxt(e.limite)}</td><td class="num">${e.diasTaller ?? '—'}</td><td class="num" style="color:${e.atraso>0?'var(--atraso)':'var(--campo)'};font-weight:600">${e.atraso}</td></tr>`).join('')}</tbody></table></div>`;
+  return `<div class="tabla-wrap vidrio"><table class="t"><thead><tr><th>Código</th><th>Descripción</th><th>Tipo</th><th>Zona</th><th>Estado</th><th>Ingreso</th><th>Requerido para</th><th>Días en taller</th><th>Días vencido</th></tr></thead><tbody>
+    ${l.map(e => `<tr data-eq="${esc(e.codigo)}"><td class="mono">${esc(e.codigo)}</td><td>${esc(e.desc)}</td><td>${esc(bonito(e.grupo))}</td><td>${esc(e.zona)}</td><td><span class="estado ${ESTADOS[e.estado].c}">${ESTADOS[e.estado].t}</span></td><td>${fTxt(e.ingreso)}</td><td>${fTxt(e.limite)}</td><td class="num">${e.diasTaller ?? '—'}</td><td class="num" style="color:${e.atraso>0?'var(--atraso)':'var(--campo)'};font-weight:600">${e.atraso}</td></tr>`).join('')}</tbody></table></div>`;
 }
 function tablaCampo(l){
   return `<div class="tabla-wrap vidrio"><table class="t"><thead><tr><th>Código</th><th>Descripción</th><th>Tipo</th><th>Zona</th><th>Fecha de salida</th><th>Ingreso a taller</th><th>Días en taller</th><th>Días tarde</th></tr></thead><tbody>
@@ -681,33 +759,94 @@ function pintarCatalogo(l){
 }
 
 /* ---------- inicio ---------- */
+/** Resumen de una zona como en las presentaciones: listos vs en reparación, por grupo */
+function resumenZona(zona, E){
+  const L = E.filter(e => e.estado === 'campo'), R = E.filter(enRep);
+  const porGrupo = l => { const m = {}; l.forEach(e => (m[e.grupo] = m[e.grupo] || []).push(e)); return Object.entries(m).sort((a,b) => b[1].length - a[1].length || a[0].localeCompare(b[0])); };
+  const desc = e => cat(e.codigo).DESCRIPCION || e.desc;
+  const venc = e => e.limite ? `req. ${fCorta(e.limite)}${e.atraso > 0 ? ` (vencido ${e.atraso} d)` : ''}` : (e.estado === 'sin' ? 'sin ingreso' : 'sin fecha');
+  const listaListos = l => l.map(e => `<span class="it" data-eq="${esc(e.codigo)}"><b class="mono">${esc(e.codigo)}</b> · ${esc(desc(e))}</span>`).join('');
+  const listaRep = (g, l) => {
+    if (l.length <= 3) return l.map(e => `<span class="it ${e.atraso>0?'mal':''}" data-eq="${esc(e.codigo)}"><b class="mono">${esc(e.codigo)}</b> · ${esc(desc(e))} · ${venc(e)}</span>`).join('');
+    const m = {}; l.forEach(e => { const k = e.limite ? iso(e.limite) : (e.estado === 'sin' ? 'sin' : '—'); (m[k] = m[k] || []).push(e); });
+    return Object.entries(m).sort().map(([k, es]) => { const e = es[0]; return `<span class="it ${e.atraso>0?'mal':''}" data-vergrupo="${esc(g)}" data-verzona="${esc(zona)}">${es.length} ${plural(g)} · ${venc(e)}</span>`; }).join('');
+  };
+  const tabla = (l, rep) => !l.length ? `<p class="nota" style="padding:10px 0">Ninguno.</p>` : `<table class="t tz"><thead><tr><th>Grupo</th><th class="num">Cant.</th><th>Equipos</th></tr></thead><tbody>
+    ${porGrupo(l).map(([g, es]) => `<tr><td><b>${esc(bonito(g))}</b></td><td class="num"><b>${es.length}</b></td><td class="its">${rep ? listaRep(g, es) : listaListos(es)}</td></tr>`).join('')}</tbody></table>`;
+  return `<section class="zona vidrio"><h2>${esc(zona)}: <span style="color:var(--campo)">${L.length} listo${L.length===1?'':'s'}</span> y <span style="color:var(--taller)">${R.length} en reparación</span></h2>
+    <div class="zona-2"><div><h3><i class="bola" style="background:var(--campo)"></i>Listos <small>${L.length} equipo${L.length===1?'':'s'}</small></h3>${tabla(L, false)}</div>
+    <div><h3><i class="bola" style="background:var(--taller)"></i>En reparación / pendientes <small>${R.length} equipo${R.length===1?'':'s'}</small></h3>${tabla(R, true)}</div></div></section>`;
+}
+/** Matriz de equipos en reparación por zona y grupo */
+function matriz(E){
+  const zonas = [...new Set(E.map(e => e.zona))].sort(ordenZona);
+  const grupos = [...new Set(S.equipos.map(e => e.grupo))].sort((a,b) => S.equipos.filter(e => e.grupo === b).length - S.equipos.filter(e => e.grupo === a).length);
+  const R = E.filter(enRep), n = (g, z) => R.filter(e => (!g || e.grupo === g) && (!z || e.zona === z)).length;
+  const c = (v, g, z) => v ? `<td class="num v" data-vergrupo="${esc(g||'')}" data-verzona="${esc(z||'')}">${v}</td>` : '<td class="num cero">·</td>';
+  return `<div class="tabla-wrap"><table class="t matriz"><thead><tr><th>Grupo</th>${zonas.map(z => `<th class="num">${esc(z)}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>
+    ${grupos.map(g => `<tr><td><b>${esc(bonito(g))}</b></td>${zonas.map(z => c(n(g, z), g, z)).join('')}<td class="num"><b>${n(g) || '·'}</b></td></tr>`).join('')}
+    <tr class="tot"><td><b>Total</b></td>${zonas.map(z => `<td class="num"><b>${n(null, z)}</b></td>`).join('')}<td class="num"><b>${R.length}</b></td></tr></tbody></table></div>`;
+}
 function pintarInicio(){
-  const E = S.equipos, H = hoy();
-  const campo = E.filter(e => e.estado === 'campo').length, taller = E.filter(e => e.estado === 'taller'), sin = E.filter(e => e.estado === 'sin').length;
-  const atr = taller.filter(e => e.atraso > 0);
+  const f = filtroDe('inicio');
+  $('#filtroInicio').innerHTML = chipsZona('inicio', S.equipos);
+  $('#filtroInicio').onclick = ev => { const c = ev.target.closest('.chip'); if (!c) return; alternar(f.zonas, c.dataset.z); guardarFiltros(); pintarInicio(); };
+  const E = S.equipos.filter(e => !f.zonas.length || f.zonas.includes(e.zona)), H = hoy();
+  const campo = E.filter(e => e.estado === 'campo').length, rep = E.filter(enRep), sin = E.filter(e => e.estado === 'sin').length;
+  const atr = rep.filter(e => e.atraso > 0);
   const hora = new Date().getHours();
   $('#saludo').textContent = `${hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches'}, ${S.ses?.usuario?.nombre?.split(' ')[0] || ''}`.trim();
-  $('#subResumen').textContent = `Resumen al ${H.toLocaleDateString('es-GT', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}`;
+  $('#subResumen').textContent = `Resumen al ${H.toLocaleDateString('es-GT', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}${f.zonas.length ? ' · ' + f.zonas.join(', ') : ' · todas las zonas'}`;
   $('#ultimaCarga').textContent = S.ultimaCarga ? 'Última carga de Excel: ' + S.ultimaCarga : '';
-  const k = (t, n, sub, c, irA, est) => `<button type="button" class="kpi vidrio" style="--c:${c}" data-ir="${irA}" ${est?`data-est="${est}"`:''}><small>${t}</small><b>${n}</b><span>${sub}</span></button>`;
+  const k = (t, n, sub, c, irA) => `<button type="button" class="kpi vidrio" style="--c:${c}" data-ir="${irA}"><small>${t}</small><b>${n}</b><span>${sub}</span></button>`;
+  const enTaller = rep.filter(e => e.estado === 'taller');
   $('#kpis').innerHTML =
     k('Total de equipos', E.length, `${new Set(E.map(e => e.grupo)).size} tipos de equipo`, 'var(--aqua)', 'catalogo') +
-    k('Trabajando en campo', campo + sin, sin ? `${campo} entregados por taller · ${sin} sin ingreso` : 'Entregados por taller', 'var(--campo)', 'campo') +
-    k('En taller', taller.length, `${Math.round(taller.reduce((s,e) => s + (e.diasTaller||0), 0) / (taller.length || 1))} días promedio en taller`, 'var(--taller)', 'taller') +
-    k('En taller con atraso', atr.length, atr.length ? `Hasta ${Math.max(...atr.map(e => e.atraso))} días pasados de salir` : 'Ninguno pasado de su fecha', 'var(--atraso)', 'taller');
+    k('Listos · trabajando en campo', campo, 'Entregados por el taller', 'var(--campo)', 'campo') +
+    k('En reparación / pendientes', rep.length, `${enTaller.length} en taller${sin ? ` · ${sin} pendientes de ingreso` : ''}`, 'var(--taller)', 'taller') +
+    k('Vencidos', atr.length, atr.length ? `Hasta ${Math.max(...atr.map(e => e.atraso))} días pasados de su requerimiento` : 'Ninguno pasado de su fecha', 'var(--atraso)', 'taller');
+  $('#matriz').innerHTML = rep.length ? matriz(E) : '<p class="nota">No hay equipos en reparación en esta selección.</p>';
   // por grupo
   const porG = {};
-  E.forEach(e => { const g = porG[e.grupo] || (porG[e.grupo] = { campo:0, taller:0, atraso:0, sin:0, t:0 }); g.t++; if (e.estado === 'taller') { e.atraso > 0 ? g.atraso++ : g.taller++; } else g[e.estado]++; });
+  E.forEach(e => { const g = porG[e.grupo] || (porG[e.grupo] = { campo:0, taller:0, atraso:0, sin:0, t:0 }); g.t++; if (enRep(e) && e.atraso > 0) g.atraso++; else g[e.estado]++; });
   const max = Math.max(1, ...Object.values(porG).map(g => g.t));
-  const barra = (nom, g, data) => `<div class="barra-g" ${data}><span class="nom" title="${esc(nom)}">${esc(nom)}</span><div class="pista" style="width:${Math.max(8, g.t/max*100)}%">
-      ${['campo','sin','taller','atraso'].map(k => g[k] ? `<i style="width:${g[k]/g.t*100}%;background:var(--${k === 'atraso' ? 'atraso' : k})" title="${k}: ${g[k]}"></i>` : '').join('')}</div><span class="tot">${g.t}</span></div>`;
-  $('#barrasGrupo').innerHTML = Object.entries(porG).sort((a,b) => b[1].t - a[1].t).map(([n,g]) => barra(bonito(n), g, `data-grupo="${esc(n)}"`)).join('');
-  const porZ = {};
-  E.forEach(e => { const g = porZ[e.zona] || (porZ[e.zona] = { campo:0, taller:0, atraso:0, sin:0, t:0 }); g.t++; if (e.estado === 'taller') { e.atraso > 0 ? g.atraso++ : g.taller++; } else g[e.estado]++; });
-  const maxZ = Math.max(1, ...Object.values(porZ).map(g => g.t));
-  $('#barrasZona').innerHTML = Object.entries(porZ).sort((a,b) => a[0].localeCompare(b[0], 'es', {numeric:true})).map(([n,g]) => barra(n, g, `data-zona="${esc(n)}"`).replace(`width:${Math.max(8, g.t/max*100)}%`, `width:${Math.max(8, g.t/maxZ*100)}%`)).join('');
-  const top = [...taller].sort((a,b) => b.atraso - a.atraso || b.diasTaller - a.diasTaller).slice(0, 7);
-  $('#topAtraso').innerHTML = top.length ? top.map(e => `<div class="mini" data-eq="${esc(e.codigo)}" role="button" tabindex="0"><div class="c"><b class="mono">${esc(e.codigo)}</b><span>${esc(e.desc)} · ${esc(e.zona)} · ingresó ${fTxt(e.ingreso)}</span></div>${atrasoHtml(e)}</div>`).join('') : '<p class="nota">No hay equipos en taller.</p>';
+  $('#barrasGrupo').innerHTML = Object.entries(porG).sort((a,b) => b[1].t - a[1].t).map(([n,g]) => `<div class="barra-g" data-vergrupo="${esc(n)}"><span class="nom" title="${esc(bonito(n))}">${esc(bonito(n))}</span><div class="pista" style="width:${Math.max(8, g.t/max*100)}%">
+      ${['campo','sin','taller','atraso'].map(k => g[k] ? `<i style="width:${g[k]/g.t*100}%;background:var(--${k})" title="${g[k]}"></i>` : '').join('')}</div><span class="tot">${g.t}</span></div>`).join('');
+  const top = [...rep].sort((a,b) => b.atraso - a.atraso || (b.diasTaller??0) - (a.diasTaller??0)).slice(0, 7);
+  $('#topAtraso').innerHTML = top.length ? top.map(e => `<div class="mini" data-eq="${esc(e.codigo)}" role="button" tabindex="0"><div class="c"><b class="mono">${esc(e.codigo)}</b><span>${esc(e.desc)} · ${esc(e.zona)} · ${e.estado === 'sin' ? 'sin ingreso' : 'ingresó ' + fTxt(e.ingreso)}</span></div>${atrasoHtml(e)}</div>`).join('') : '<p class="nota">No hay equipos en reparación.</p>';
+  // resúmenes por zona
+  const zonas = (f.zonas.length ? f.zonas : todasZonas()).filter(z => E.some(e => e.zona === z)).sort(ordenZona);
+  $('#zonasResumen').innerHTML = zonas.map(z => resumenZona(z, E.filter(e => e.zona === z))).join('');
+}
+
+/* ---------- actualizaciones ---------- */
+function pintarCambios(){
+  const A = S.actualizaciones || [];
+  const f = filtroDe('cambios');
+  const cont = $('#listaCambios');
+  $('#filtroCambios').innerHTML = chipsZona('cambios', A.map(a => ({ zona: a.zona })));
+  $('#filtroCambios').onclick = ev => { const c = ev.target.closest('.chip'); if (!c) return; alternar(f.zonas, c.dataset.z); guardarFiltros(); pintarCambios(); };
+  if (!A.length){
+    cont.innerHTML = `<div class="vacio vidrio">Todavía no hay actualizaciones.<br><br>Cada vez que se carga un Excel nuevo, la app lo compara con el anterior y aquí aparece qué equipos cambiaron: los que quedaron listos, los que regresaron a taller, los nuevos y los que ya no están.</div>`;
+    return;
+  }
+  const cargas = {}; A.forEach(a => (cargas[a.fecha] = cargas[a.fecha] || []).push(a));
+  const orden = Object.keys(cargas).sort().reverse();
+  const tipoCls = t => t === 'LISTO' ? 'ok' : t === 'REGRESO A TALLER' || t === 'QUITADO' ? 'mal' : t === 'NUEVO' ? 'nuevo' : '';
+  cont.innerHTML = orden.map((fch, i) => {
+    let l = cargas[fch].filter(a => !f.zonas.length || f.zonas.includes(a.zona));
+    if (!l.length) return '';
+    l = l.sort((a,b) => ordenZona(a.zona, b.zona) || a.codigo.localeCompare(b.codigo, 'es', {numeric:true}));
+    const d = new Date(fch), cuenta = t => l.filter(a => a.tipo === t).length;
+    const res = [['LISTO','quedaron listos'],['REGRESO A TALLER','regresaron a taller'],['NUEVO','nuevos'],['QUITADO','ya no están'],['CAMBIO','con otros cambios']].map(([t, x]) => cuenta(t) ? `<span class="tag ${tipoCls(t)}">${cuenta(t)} ${x}</span>` : '').join('');
+    return `<section class="panel vidrio cambio">
+      <h2>Actualización del ${isNaN(d) ? esc(fch) : fCorta(d) + '/' + d.getFullYear()}${i === 0 ? ' <span class="estado e-campo">Última</span>' : ''}</h2>
+      <p class="nota">${l.length} cambio${l.length===1?'':'s'} · cargado por ${esc(l[0].por)}${l[0].archivo ? ' · ' + esc(l[0].archivo) : ''}</p>
+      <div class="meta" style="margin:10px 0 12px">${res}</div>
+      <div class="tabla-wrap"><table class="t"><thead><tr><th>Código</th><th>Zona</th><th>Equipo</th><th>Antes</th><th>Ahora</th></tr></thead><tbody>
+      ${l.map(a => `<tr ${S.equipos.some(e => e.codigo === a.codigo) ? `data-eq="${esc(a.codigo)}"` : ''}><td class="mono"><b>${esc(a.codigo)}</b></td><td>${esc(a.zona)}</td><td>${esc(a.equipo)}</td><td class="antes">${esc(a.antes)}</td><td class="ahora ${tipoCls(a.tipo)}">${esc(a.ahora)}</td></tr>`).join('')}
+      </tbody></table></div></section>`;
+  }).join('') || '<div class="vacio vidrio">No hay cambios en las zonas elegidas.</div>';
 }
 
 /* ---------- mapa ---------- */
@@ -889,11 +1028,11 @@ async function alElegirExcel(file){
       <p style="margin:0"><b>${esc(x.archivo)}</b> · hoja <b>${esc(x.nom)}</b></p>
       <div class="kpis" style="margin:0">
         <div class="kpi vidrio" style="--c:var(--aqua);cursor:default"><small>Equipos</small><b>${eq.length}</b></div>
-        <div class="kpi vidrio" style="--c:var(--campo);cursor:default"><small>En campo</small><b>${n('campo') + n('sin')}</b></div>
-        <div class="kpi vidrio" style="--c:var(--taller);cursor:default"><small>En taller</small><b>${n('taller')}</b></div>
+        <div class="kpi vidrio" style="--c:var(--campo);cursor:default"><small>Listos · en campo</small><b>${n('campo')}</b></div>
+        <div class="kpi vidrio" style="--c:var(--taller);cursor:default"><small>En reparación / pendientes</small><b>${n('taller') + n('sin')}</b></div>
       </div>
       ${faltan.length ? `<p class="error" style="margin:0">Ojo: no encontré estas columnas: ${faltan.join(', ')}. Revise los encabezados.</p>` : ''}
-      <p class="nota">Al cargar, se reemplaza la pestaña <b>Hoja 1</b> de EQUIPOS TALLER MALEZAS (queda una copia en la pestaña oculta RESPALDO) y el archivo se guarda en Drive › EQUIPOS MALEZAS › EXCEL CARGADOS. Las fotos, conteos, ubicaciones y observaciones del catálogo no se tocan.</p>`;
+      <p class="nota">Al cargar, se reemplaza la pestaña <b>Hoja 1</b> de EQUIPOS TALLER MALEZAS (queda una copia en la pestaña oculta RESPALDO) y el archivo se guarda en Drive › EQUIPOS MALEZAS › EXCEL CARGADOS. Las fotos, conteos, ubicaciones y observaciones del catálogo no se tocan. Los equipos que cambien (listos, regresos a taller, nuevos) quedan en <b>Actualizaciones</b>.</p>`;
     $('#dlgExcel').showModal();
   } catch(err){ toast(err.message, 6000); }
   finally { velo(); $('#archivoExcel').value = ''; }
@@ -902,9 +1041,10 @@ async function confirmarExcel(){
   const x = S.excel; if (!x) return;
   const b = $('#btnConfirmarExcel'); b.disabled = true; b.textContent = 'Cargando…';
   try {
-    await api('excel', { encabezados: x.enc, filas: x.filas, archivoNombre: x.archivo, archivoBase64: x.b64 });
-    $('#dlgExcel').close(); toast(`Excel cargado: ${x.filas.length} filas.`);
+    const r = await api('excel', { encabezados: x.enc, filas: x.filas, archivoNombre: x.archivo, archivoBase64: x.b64 });
+    $('#dlgExcel').close(); toast(`Excel cargado: ${x.filas.length} filas · ${r.cambios || 0} equipo${r.cambios===1?'':'s'} con cambios.`, 5000);
     S.excel = null; await cargarDatos(true);
+    if (r.cambios) ir('cambios');
   } catch(err){ toast(err.message, 6000); }
   finally { b.disabled = false; b.textContent = 'Cargar a la hoja'; }
 }
@@ -912,11 +1052,15 @@ async function confirmarExcel(){
 /* ===================================================================
    REPORTE PDF
    =================================================================== */
-let repGrupos = new Set();
+let repGrupos = new Set(), repZonas = [];
 function abrirReporte(){
   const grupos = [...new Set(S.equipos.map(e => e.grupo))].sort();
   repGrupos = new Set(grupos);
-  const pinta = () => { $('#rGrupos').innerHTML = `<button type="button" class="chip ${repGrupos.size === grupos.length ? 'activo' : ''}" data-rg="*">Todos</button>` + grupos.map(g => `<button type="button" class="chip ${repGrupos.has(g) && repGrupos.size !== grupos.length ? 'activo' : ''}" data-rg="${esc(g)}">${esc(bonito(g))}</button>`).join(''); };
+  repZonas = filtroDe('inicio').zonas.slice();
+  const pinta = () => {
+    $('#rGrupos').innerHTML = `<button type="button" class="chip ${repGrupos.size === grupos.length ? 'activo' : ''}" data-rg="*">Todos</button>` + grupos.map(g => `<button type="button" class="chip ${repGrupos.has(g) && repGrupos.size !== grupos.length ? 'activo' : ''}" data-rg="${esc(g)}">${esc(bonito(g))}</button>`).join('');
+    $('#rZonas').innerHTML = `<button type="button" class="chip ${repZonas.length ? '' : 'activo'}" data-z="">Todas</button>` + todasZonas().map(z => `<button type="button" class="chip ${repZonas.includes(z) ? 'activo' : ''}" data-z="${esc(z)}">${esc(z)}</button>`).join('');
+  };
   pinta();
   $('#rGrupos').onclick = ev => {
     const c = ev.target.closest('[data-rg]'); if (!c) return;
@@ -926,87 +1070,140 @@ function abrirReporte(){
     else { repGrupos.has(g) ? repGrupos.delete(g) : repGrupos.add(g); if (!repGrupos.size) repGrupos = new Set(grupos); }
     pinta();
   };
-  const zonas = [...new Set(S.equipos.map(e => e.zona))].sort((a,b) => a.localeCompare(b,'es',{numeric:true}));
-  $('#rZona').innerHTML = '<option value="">Todas</option>' + zonas.map(z => `<option>${esc(z)}</option>`).join('');
+  $('#rZonas').onclick = ev => { const c = ev.target.closest('[data-z]'); if (!c) return; alternar(repZonas, c.dataset.z); pinta(); };
+  $('#rCambios').disabled = !(S.actualizaciones || []).length;
   $('#dlgReporte').showModal();
 }
 function cargarImagen(src){ return new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; }); }
 async function generarPdf(){
   if (!window.jspdf) return toast('No se cargó el generador de PDF. Revise su internet.');
-  const zona = $('#rZona').value, det = $('#rDetalle').value;
-  const E = S.equipos.filter(e => repGrupos.has(e.grupo) && (!zona || e.zona === zona));
+  const det = $('#rDetalle').value, conCambios = $('#rCambios').value === '1';
+  const E = S.equipos.filter(e => repGrupos.has(e.grupo) && (!repZonas.length || repZonas.includes(e.zona)));
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit:'mm', format:'letter' });
-  const W = doc.internal.pageSize.getWidth(), M = 14;
+  const doc = new jsPDF({ unit:'mm', format:'letter', orientation:'landscape' });
+  const W = doc.internal.pageSize.getWidth(), HH = doc.internal.pageSize.getHeight(), M = 12;
   const H = hoy(), ahora = new Date();
   const logo = await cargarImagen('logo.png');
-  // encabezado
-  doc.setFillColor(8, 32, 38); doc.rect(0, 0, W, 34, 'F');
-  doc.setFillColor(45, 226, 198); doc.rect(0, 34, W, 1.2, 'F');
-  if (logo) doc.addImage(logo, 'PNG', M, 4, 26*logo.width/logo.height, 26);
-  doc.setTextColor(255); doc.setFont('helvetica','bold'); doc.setFontSize(17);
-  doc.text('Reporte de equipos · Malezas y Madurantes', M + 26, 15);
-  doc.setFont('helvetica','normal'); doc.setFontSize(10);
-  doc.text(`Ingenio Madre Tierra · ${zona || 'Todas las zonas'} · ${repGrupos.size === new Set(S.equipos.map(e=>e.grupo)).size ? 'Todos los equipos' : [...repGrupos].map(bonito).join(', ')}`.slice(0, 120), M + 26, 22);
-  doc.text(`Generado el ${fTxt(H)} ${String(ahora.getHours()).padStart(2,'0')}:${String(ahora.getMinutes()).padStart(2,'0')} · Creado por Cobo Cubur`, M + 26, 28);
-  // resumen
-  const taller = E.filter(e => e.estado === 'taller'), campo = E.filter(e => e.estado === 'campo'), sin = E.filter(e => e.estado === 'sin');
-  const atr = taller.filter(e => e.atraso > 0);
-  const cajas = [['Total de equipos', E.length, [45,226,198]], ['Trabajando en campo', campo.length + sin.length, [40,180,120]], ['En taller', taller.length, [230,160,40]], ['En taller con atraso', atr.length, [230,80,110]]];
-  const cw = (W - 2*M - 9) / 4;
+  const VERDE = [31,77,46], ORO = [139,101,20], ROJO = [190,40,60], GRIS = [120,120,120];
+  const zonasTxt = repZonas.length ? repZonas.join(', ') : 'Todas las zonas';
+  const tiposTxt = repGrupos.size === new Set(S.equipos.map(e => e.grupo)).size ? 'Todos los equipos' : [...repGrupos].map(bonito).join(', ');
+  // logo en verde (el original es blanco): se tiñe en un canvas
+  let logoVerde = null;
+  if (logo){ const c = document.createElement('canvas'); c.width = logo.width; c.height = logo.height; const x = c.getContext('2d'); x.drawImage(logo, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = '#1f4d2e'; x.fillRect(0, 0, c.width, c.height); logoVerde = c; }
+  const titulo = (t, sub) => {
+    if (logoVerde) doc.addImage(logoVerde, 'PNG', W - M - 20*logo.width/logo.height, 6, 20*logo.width/logo.height, 20);
+    doc.setTextColor(...VERDE); doc.setFont('times','bold'); doc.setFontSize(24); doc.text(t, M + 4, 19);
+    if (sub){ doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...GRIS); doc.text(sub, M + 4, 26); }
+    doc.setFont('helvetica','normal');
+  };
+  const tabla = (opts) => doc.autoTable(Object.assign({ theme:'grid', styles:{ fontSize:9, cellPadding:2, lineColor:[225,228,226], lineWidth:.15, textColor:[30,30,30] }, headStyles:{ fillColor:VERDE, textColor:255, fontStyle:'bold' }, alternateRowStyles:{ fillColor:[246,248,246] }, margin:{ left:M, right:M } }, opts));
+
+  // ---- portada / resumen
+  const listos = E.filter(e => e.estado === 'campo'), rep = E.filter(enRep), atr = rep.filter(e => e.atraso > 0), sinI = E.filter(e => e.estado === 'sin');
+  doc.setFillColor(...VERDE); doc.rect(0, 0, W, 40, 'F');
+  if (logo) doc.addImage(logo, 'PNG', M, 7, 26*logo.width/logo.height, 26);
+  doc.setTextColor(255); doc.setFont('times','bold'); doc.setFontSize(24); doc.text('Reporte de equipos · Malezas y Madurantes', M + 30, 19);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10.5);
+  doc.text(`Ingenio Madre Tierra · ${zonasTxt} · ${tiposTxt}`.slice(0, 150), M + 30, 27);
+  doc.text(`Generado el ${fTxt(H)} ${String(ahora.getHours()).padStart(2,'0')}:${String(ahora.getMinutes()).padStart(2,'0')} · Creado por Cobo Cubur`, M + 30, 33);
+  const cajas = [['Total de equipos', E.length, [45,180,160]], ['Listos · en campo', listos.length, [56,142,60]], ['En reparación / pendientes', rep.length, [210,150,30]], ['Vencidos', atr.length, ROJO]];
+  const cw = (W - 2*M - 12) / 4;
   cajas.forEach(([t, n, c], i) => {
-    const x = M + i*(cw + 3), y = 42;
-    doc.setFillColor(245, 248, 248); doc.roundedRect(x, y, cw, 24, 2, 2, 'F');
-    doc.setFillColor(...c); doc.rect(x, y, 1.6, 24, 'F');
-    doc.setTextColor(90); doc.setFontSize(9); doc.text(t, x + 5, y + 7);
-    doc.setTextColor(15); doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.text(String(n), x + 5, y + 19); doc.setFont('helvetica','normal');
+    const x = M + i*(cw + 4), y = 48;
+    doc.setFillColor(245, 247, 245); doc.roundedRect(x, y, cw, 26, 2, 2, 'F');
+    doc.setFillColor(...c); doc.rect(x, y, 1.8, 26, 'F');
+    doc.setTextColor(90); doc.setFontSize(10); doc.text(t, x + 6, y + 8);
+    doc.setTextColor(20); doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.text(String(n), x + 6, y + 21); doc.setFont('helvetica','normal');
   });
-  doc.setFontSize(9); doc.setTextColor(90);
-  doc.text(doc.splitTextToSize(`En campo: ${campo.length} entregados por el taller${sin.length ? ` + ${sin.length} sin ingreso a taller registrado` : ''}. Atraso = días pasados de la fecha de requerimiento del usuario (si el equipo ingresó después de esa fecha, se cuentan ${DIAS_PERIODO} días desde el ingreso).`, W - 2*M), M, 71);
-  const tabla = (opts) => doc.autoTable(Object.assign({ theme:'grid', styles:{ fontSize:8.5, cellPadding:1.8, lineColor:[220,226,228], lineWidth:.1 }, headStyles:{ fillColor:[8,32,38], textColor:255, fontStyle:'bold' }, alternateRowStyles:{ fillColor:[246,249,249] }, margin:{ left:M, right:M } }, opts));
-  // por grupo
+  doc.setFontSize(9); doc.setTextColor(...GRIS);
+  doc.text(`En reparación incluye ${sinI.length} pendiente${sinI.length===1?'':'s'} de ingreso a taller. Vencido = días pasados de la fecha de requerimiento del usuario.`, M, 81);
   const porG = {};
-  E.forEach(e => { const g = porG[e.grupo] || (porG[e.grupo] = [0,0,0,0,0]); g[0]++; if (e.estado === 'taller') { g[2]++; if (e.atraso > 0) g[3]++; } else { g[1]++; if (e.estado === 'sin') g[4]++; } });
-  doc.setFontSize(12); doc.setTextColor(15); doc.setFont('helvetica','bold'); doc.text('Resumen por tipo de equipo', M, 82); doc.setFont('helvetica','normal');
-  tabla({ startY:85, head:[['Tipo de equipo','Total','En campo','En taller','Con atraso']], body:Object.entries(porG).sort((a,b) => b[1][0]-a[1][0]).map(([g,v]) => [bonito(g), v[0], v[1], v[2], v[3]]).concat([[{content:'Total',styles:{fontStyle:'bold'}}, E.length, campo.length + sin.length, taller.length, atr.length]]), columnStyles:{1:{halign:'right'},2:{halign:'right'},3:{halign:'right'},4:{halign:'right'}} });
-  const porZ = {};
-  E.forEach(e => { const g = porZ[e.zona] || (porZ[e.zona] = [0,0,0,0]); g[0]++; if (e.estado === 'taller') { g[2]++; if (e.atraso > 0) g[3]++; } else g[1]++; });
-  let y = doc.lastAutoTable.finalY + 9;
-  doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.text('Resumen por zona', M, y); doc.setFont('helvetica','normal');
-  tabla({ startY:y + 3, head:[['Zona','Total','En campo','En taller','Con atraso']], body:Object.entries(porZ).sort((a,b) => a[0].localeCompare(b[0],'es',{numeric:true})).map(([z,v]) => [z, ...v]), columnStyles:{1:{halign:'right'},2:{halign:'right'},3:{halign:'right'},4:{halign:'right'}} });
-  if (det !== 'no' && taller.length){
-    doc.addPage(); y = 16;
-    doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.text(`Equipos en taller (${taller.length})`, M, y); doc.setFont('helvetica','normal');
-    tabla({ startY:y + 3, head:[['Código','Descripción','Tipo','Zona','Ingreso','Debía salir','Días en taller','Días de atraso']],
-      body:[...taller].sort((a,b) => b.atraso - a.atraso || b.diasTaller - a.diasTaller).map(e => [e.codigo, e.desc, bonito(e.grupo), e.zona, fTxt(e.ingreso), fTxt(e.limite), e.diasTaller ?? '', e.atraso]),
-      columnStyles:{6:{halign:'right'},7:{halign:'right',fontStyle:'bold'}},
-      didParseCell: d => { if (d.section === 'body' && d.column.index === 7 && +d.cell.raw > 0) d.cell.styles.textColor = [200,40,70]; } });
+  E.forEach(e => { const g = porG[e.grupo] || (porG[e.grupo] = [0,0,0,0]); g[0]++; if (e.estado === 'campo') g[1]++; else { g[2]++; if (e.atraso > 0) g[3]++; } });
+  doc.setFontSize(13); doc.setTextColor(...VERDE); doc.setFont('helvetica','bold'); doc.text('Resumen por tipo de equipo', M, 91); doc.setFont('helvetica','normal');
+  tabla({ startY:94, head:[['Tipo de equipo','Total','Listos · en campo','En reparación / pendientes','Vencidos']], body:Object.entries(porG).sort((a,b) => b[1][0]-a[1][0]).map(([g,v]) => [bonito(g), ...v]).concat([[{content:'Total',styles:{fontStyle:'bold'}}, E.length, listos.length, rep.length, atr.length]]),
+    columnStyles:{1:{halign:'center'},2:{halign:'center'},3:{halign:'center'},4:{halign:'center'}} });
+
+  // ---- matriz por zona y grupo
+  if (rep.length){
+    doc.addPage(); titulo('Equipos en reparación por zona y grupo', `${zonasTxt} · al ${fTxt(H)}`);
+    const zonas = [...new Set(E.map(e => e.zona))].sort(ordenZona);
+    const grupos = [...new Set(E.map(e => e.grupo))].sort((a,b) => E.filter(e => e.grupo === b).length - E.filter(e => e.grupo === a).length);
+    const n = (g, z) => rep.filter(e => (!g || e.grupo === g) && (!z || e.zona === z)).length;
+    tabla({ startY:34, head:[['Grupo (Malezas)', ...zonas, 'Total']],
+      body: grupos.map(g => [bonito(g), ...zonas.map(z => n(g, z) || '·'), n(g) || '·']).concat([['Total', ...zonas.map(z => n(null, z)), rep.length]]),
+      styles:{ fontSize:10.5, cellPadding:3.2, halign:'center' }, columnStyles:{ 0:{ halign:'left', fontStyle:'bold', cellWidth:62 } },
+      didParseCell: d => { if (d.section !== 'body') return; const last = d.row.index === grupos.length;
+        if (last) { d.cell.styles.fontStyle = 'bold'; d.cell.styles.fillColor = [236,243,236]; }
+        else if (d.column.index > 0 && d.column.index <= zonas.length) { if (d.cell.raw === '·') d.cell.styles.textColor = [190,190,190]; else { d.cell.styles.textColor = [200,140,20]; d.cell.styles.fontStyle = 'bold'; } }
+        else if (d.column.index === zonas.length + 1) d.cell.styles.fontStyle = 'bold'; } });
   }
-  if (det === 'todos' && (campo.length + sin.length)){
-    y = doc.lastAutoTable.finalY + 10; if (y > 240) { doc.addPage(); y = 16; }
-    doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.text(`Equipos en campo (${campo.length + sin.length})`, M, y); doc.setFont('helvetica','normal');
-    tabla({ startY:y + 3, head:[['Código','Descripción','Tipo','Zona','Fecha de salida','Días en taller','Días tarde']],
-      body:[...campo, ...sin].sort((a,b) => a.codigo.localeCompare(b.codigo,'es',{numeric:true})).map(e => [e.codigo, e.desc, bonito(e.grupo), e.zona, e.estado === 'sin' ? 'Sin ingreso' : fTxt(e.salida), e.diasTaller ?? '', e.estado === 'campo' ? e.atraso : '']),
-      columnStyles:{5:{halign:'right'},6:{halign:'right'}} });
+
+  // ---- una hoja por zona
+  const desc = e => cat(e.codigo).DESCRIPCION || e.desc;
+  const venc = e => e.limite ? `req. ${fCorta(e.limite)}${e.atraso > 0 ? ` (vencido ${e.atraso} d)` : ''}` : (e.estado === 'sin' ? 'sin ingreso' : '');
+  const porGrupo = l => { const m = {}; l.forEach(e => (m[e.grupo] = m[e.grupo] || []).push(e)); return Object.entries(m).sort((a,b) => b[1].length - a[1].length); };
+  const txtRep = (g, l) => {
+    if (l.length <= 3) return l.map(e => `${e.codigo} · ${desc(e)} · ${venc(e)}`).join('\n');
+    const m = {}; l.forEach(e => { const k = e.limite ? iso(e.limite) : e.estado; (m[k] = m[k] || []).push(e); });
+    return Object.entries(m).sort().map(([k, es]) => `${es.length} ${plural(g)} · ${venc(es[0])}`).join('\n');
+  };
+  [...new Set(E.map(e => e.zona))].sort(ordenZona).forEach(z => {
+    const Z = E.filter(e => e.zona === z), L = Z.filter(e => e.estado === 'campo'), R = Z.filter(enRep);
+    doc.addPage(); titulo(`${z}: ${L.length} listo${L.length===1?'':'s'} y ${R.length} en reparación`);
+    const mitad = (W - 2*M - 8) / 2;
+    const cab = (x, color, t, n) => { doc.setFillColor(...color); doc.circle(x + 4, 37, 3.6, 'F'); doc.setTextColor(...VERDE); doc.setFont('times','bold'); doc.setFontSize(15); doc.text(t, x + 11, 39); const w = doc.getTextWidth(t); doc.setFont('times','normal'); doc.setTextColor(...GRIS); doc.text(`${n} equipo${n===1?'':'s'}`, x + 14 + w, 39); doc.setFont('helvetica','normal'); };
+    cab(M, [67,148,67], 'Listos', L.length);
+    cab(M + mitad + 8, [218,155,32], 'En reparación / pendientes', R.length);
+    const body = (l, rep) => l.length ? porGrupo(l).map(([g, es]) => [bonito(g), es.length, rep ? txtRep(g, es) : es.map(e => `${e.codigo} · ${desc(e)}`).join('\n')]) : [['—', 0, 'Ninguno']];
+    const p0 = doc.internal.getNumberOfPages();
+    tabla({ startY:45, margin:{ left:M, right:W - M - mitad }, head:[['Grupo','Cant.','Equipos']], body:body(L, false), columnStyles:{0:{fontStyle:'bold',cellWidth:30},1:{halign:'center',fontStyle:'bold',cellWidth:13}} });
+    doc.setPage(p0);   // la tabla de reparación va a la par, en la misma hoja
+    tabla({ startY:45, margin:{ left:M + mitad + 8, right:M }, head:[['Grupo','Cant.','Equipos']], headStyles:{ fillColor:ORO, textColor:255, fontStyle:'bold' }, body:body(R, true),
+      columnStyles:{0:{fontStyle:'bold',cellWidth:30},1:{halign:'center',fontStyle:'bold',cellWidth:13},2:{textColor:ROJO}} });
+    doc.setPage(doc.internal.getNumberOfPages());
+  });
+
+  // ---- última actualización
+  const A = S.actualizaciones || [];
+  if (conCambios && A.length){
+    const ult = A.map(a => a.fecha).sort().pop(), d = new Date(ult);
+    const l = A.filter(a => a.fecha === ult && (!repZonas.length || repZonas.includes(a.zona))).sort((a,b) => ordenZona(a.zona, b.zona) || a.codigo.localeCompare(b.codigo,'es',{numeric:true}));
+    if (l.length){
+      doc.addPage(); titulo(`Actualización del ${isNaN(d) ? ult : fCorta(d)}`, `${l.length} cambio${l.length===1?'':'s'} respecto al Excel anterior · cargado por ${l[0].por}`);
+      tabla({ startY:32, head:[['Código','Zona','Equipo','Antes','Ahora']], body:l.map(a => [a.codigo, a.zona, a.equipo, a.antes, a.ahora]),
+        styles:{ fontSize:10, cellPadding:3 }, columnStyles:{0:{fontStyle:'bold'},3:{textColor:[140,140,140]},4:{fontStyle:'bold'}},
+        didParseCell: x => { if (x.section === 'body' && x.column.index === 4) { const t = l[x.row.index].tipo; x.cell.styles.textColor = t === 'LISTO' ? [56,142,60] : (t === 'REGRESO A TALLER' || t === 'QUITADO') ? ROJO : [40,40,40]; } } });
+    }
   }
-  // observaciones del catálogo
+
+  // ---- listas detalladas
+  if (det !== 'no' && rep.length){
+    doc.addPage(); titulo(`Equipos en reparación (${rep.length})`, 'Ordenados por días vencidos');
+    tabla({ startY:32, head:[['Código','Descripción','Tipo','Zona','Estado','Ingreso','Requerido para','Días en taller','Días vencido']],
+      body:[...rep].sort((a,b) => b.atraso - a.atraso || (b.diasTaller??0) - (a.diasTaller??0)).map(e => [e.codigo, e.desc, bonito(e.grupo), e.zona, ESTADOS[e.estado].t, fTxt(e.ingreso), fTxt(e.limite), e.diasTaller ?? '', e.atraso]),
+      columnStyles:{7:{halign:'center'},8:{halign:'center',fontStyle:'bold'}},
+      didParseCell: d => { if (d.section === 'body' && d.column.index === 8 && +d.cell.raw > 0) d.cell.styles.textColor = ROJO; } });
+  }
+  if (det === 'todos' && listos.length){
+    doc.addPage(); titulo(`Equipos listos en campo (${listos.length})`);
+    tabla({ startY:32, head:[['Código','Descripción','Tipo','Zona','Fecha de salida','Días en taller','Días tarde']],
+      body:[...listos].sort((a,b) => ordenZona(a.zona,b.zona) || a.codigo.localeCompare(b.codigo,'es',{numeric:true})).map(e => [e.codigo, e.desc, bonito(e.grupo), e.zona, fTxt(e.salida), e.diasTaller ?? '', e.atraso]),
+      columnStyles:{5:{halign:'center'},6:{halign:'center'}} });
+  }
   const obs = E.filter(e => cat(e.codigo).OBSERVACIONES || e.obsHoja);
   if (obs.length){
-    y = (doc.lastAutoTable.finalY || 20) + 10; if (y > 230) { doc.addPage(); y = 16; }
-    doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.text('Observaciones', M, y); doc.setFont('helvetica','normal');
-    tabla({ startY:y + 3, head:[['Código','Estado','Observación del catálogo','Observación del Excel','Revisado por']],
-      body:obs.map(e => { const c = cat(e.codigo); return [e.codigo, ESTADOS[e.estado].t, c.OBSERVACIONES || '', e.obsHoja || '', c['ACTUALIZADO POR'] ? `${c['ACTUALIZADO POR']} ${c['FECHA ACTUALIZACION'] || ''}` : '']; }),
-      columnStyles:{2:{cellWidth:62},3:{cellWidth:45}} });
+    doc.addPage(); titulo('Observaciones');
+    tabla({ startY:32, head:[['Código','Zona','Estado','Observación del catálogo','Observación del Excel','Revisado por']],
+      body:obs.map(e => { const c = cat(e.codigo); return [e.codigo, e.zona, ESTADOS[e.estado].t, c.OBSERVACIONES || '', e.obsHoja || '', c['ACTUALIZADO POR'] ? `${c['ACTUALIZADO POR']} ${c['FECHA ACTUALIZACION'] || ''}` : '']; }),
+      columnStyles:{3:{cellWidth:80},4:{cellWidth:55}} });
   }
-  // conteo de componentes
-  const comps = E.filter(e => { const c = cat(e.codigo); return c.BOQUILLAS !== undefined && (c.BOQUILLAS !== '' || c.BAJANTES !== '' || c.FILTROS !== ''); });
+  const comps = E.filter(e => { const c = cat(e.codigo); return ['BOQUILLAS','BAJANTES','FILTROS'].some(k => c[k] !== undefined && c[k] !== ''); });
   if (comps.length){
-    y = doc.lastAutoTable.finalY + 10; if (y > 230) { doc.addPage(); y = 16; }
-    doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.text('Boquillas, bajantes y filtros por equipo', M, y); doc.setFont('helvetica','normal');
-    tabla({ startY:y + 3, head:[['Código','Descripción','Boquillas','Bajantes','Filtros']], body:comps.map(e => { const c = cat(e.codigo); return [e.codigo, c.DESCRIPCION || e.desc, c.BOQUILLAS, c.BAJANTES, c.FILTROS]; }), columnStyles:{2:{halign:'right'},3:{halign:'right'},4:{halign:'right'}} });
+    doc.addPage(); titulo('Boquillas, bajantes y filtros por equipo');
+    tabla({ startY:32, head:[['Código','Descripción','Zona','Boquillas','Bajantes','Filtros']], body:comps.map(e => { const c = cat(e.codigo); return [e.codigo, c.DESCRIPCION || e.desc, e.zona, c.BOQUILLAS, c.BAJANTES, c.FILTROS]; }), columnStyles:{3:{halign:'center'},4:{halign:'center'},5:{halign:'center'}} });
   }
   const np = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= np; i++){ doc.setPage(i); doc.setFontSize(8); doc.setTextColor(130); doc.text(`Catálogo de equipos · Malezas y Madurantes · Creado por Cobo Cubur`, M, 272); doc.text(`Página ${i} de ${np}`, W - M, 272, { align:'right' }); }
+  for (let i = 1; i <= np; i++){ doc.setPage(i); doc.setFontSize(8); doc.setTextColor(140); doc.text('Catálogo de equipos · Malezas y Madurantes · Ingenio Madre Tierra · Creado por Cobo Cubur', M, HH - 6); doc.text(`Página ${i} de ${np}`, W - M, HH - 6, { align:'right' }); }
   const nombre = `Reporte equipos ${iso(H)} - Creado por Cobo Cubur.pdf`;
   if (window.AndroidApp && AndroidApp.guardarPdf){ AndroidApp.guardarPdf(doc.output('datauristring').split(',')[1], nombre); }
   else doc.save(nombre);
@@ -1017,10 +1214,20 @@ async function generarPdf(){
    SESIÓN Y DATOS
    =================================================================== */
 const esAdmin = () => S.ses?.usuario?.rol === 'ADMINISTRADOR';
-function guardarCache(){ guardar('cat_datos', { encabezados:S.encabezados, filas:S._filas, catalogo:S.catalogo, ultimaCarga:S.ultimaCarga, t:Date.now() }); }
+function guardarCache(){ guardar('cat_datos', { encabezados:S.encabezados, filas:S._filas, catalogo:S.catalogo, ultimaCarga:S.ultimaCarga, actualizaciones:S.actualizaciones, t:Date.now() }); }
 function usarDatos(d){
   S.encabezados = d.encabezados || []; S._filas = d.filas || []; S.catalogo = d.catalogo || {}; S.ultimaCarga = d.ultimaCarga || '';
+  S.actualizaciones = d.actualizaciones || [];
   S.equipos = construir(S.encabezados, S._filas);
+  marcarCambios();
+}
+/** Número sobre "Actualizaciones" con los cambios de la última carga que aún no se han visto en este equipo */
+function marcarCambios(){
+  const A = S.actualizaciones || []; if (!A.length) return;
+  const ult = A.map(a => a.fecha).sort().pop(); let visto = '';
+  try { visto = localStorage.getItem('cat_cambios_visto') || ''; } catch(e){}
+  const n = visto === ult ? 0 : A.filter(a => a.fecha === ult).length;
+  $$('.nav[data-ir="cambios"] .badge').forEach(b => { b.textContent = n; b.classList.toggle('oculto', !n); });
 }
 async function cargarDatos(forzar){
   const cache = leer('cat_datos');
@@ -1075,8 +1282,8 @@ document.addEventListener('click', ev => {
     if (irA.dataset.est) filtroDe(v).estado = irA.dataset.est;
     ir(v); return;
   }
-  const g = t.closest('[data-grupo]'); if (g){ filtroDe('catalogo').grupo = g.dataset.grupo; ir('catalogo'); return; }
-  const z = t.closest('[data-zona]'); if (z){ filtroDe('catalogo').zona = z.dataset.zona; ir('catalogo'); return; }
+  const vg = t.closest('[data-vergrupo]');
+  if (vg){ const f = filtroDe('taller'); f.grupos = vg.dataset.vergrupo ? [vg.dataset.vergrupo] : []; f.zonas = vg.dataset.verzona ? [vg.dataset.verzona] : (filtroDe('inicio').zonas.slice()); f.estado = ''; f.q = ''; guardarFiltros(); ir('taller'); return; }
   const eq = t.closest('[data-eq]'); if (eq){ ev.preventDefault(); abrirEquipo(eq.dataset.eq); return; }
   const fo = t.closest('[data-foto]'); if (fo){ pedirFoto(fo.dataset.foto, fo.dataset.modo); return; }
   const ver = t.closest('[data-ver]'); if (ver){ const img = ver.querySelector('img'); if (img) window.open(img.src.startsWith('data:') ? img.src : img.src.replace(/sz=w\d+/, 'sz=w2000'), '_blank'); return; }
@@ -1109,6 +1316,7 @@ zs.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) alE
    INICIO
    =================================================================== */
 pintarNav();
+cargarFiltros();
 (function(){
   const ses = leer('cat_ses');
   if (ses && ses.token){

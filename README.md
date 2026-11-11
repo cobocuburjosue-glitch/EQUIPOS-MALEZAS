@@ -6,14 +6,15 @@ Los datos están en la hoja de Google Sheets **EQUIPOS TALLER MALEZAS**. Todo vi
 ## Qué hace
 | Sección | Contenido |
 |---|---|
-| **Inicio** | Total de equipos, cuántos trabajan en campo, cuántos están en taller y cuántos tienen atraso. Gráficas por tipo y por zona. Botón **Cargar Excel actualizado** (administrador). |
-| **En taller** | Fecha de ingreso, fecha en que debía salir, días en taller y **días que se pasó de salir**. Filtro por tipo (bombas, aguilones, tanques…), zona y orden. |
-| **En campo** | Fecha de salida del taller (o "sin ingreso" si nunca entró). |
+| **Inicio** | Filtro por una o varias zonas. Total, listos en campo, en reparación/pendientes y vencidos. Tabla **en reparación por zona y grupo**, y un **resumen por zona** (listos vs. en reparación por grupo, como en las presentaciones). Botón **Cargar Excel actualizado** (administrador). |
+| **En reparación** | En taller + pendientes de ingreso: ingreso, fecha requerida, días en taller y **días vencido**. Filtros de varias zonas y tipos a la vez (se recuerdan). |
+| **En campo** | Equipos listos: fecha de salida del taller. |
+| **Actualizaciones** | Cada carga de Excel se compara con la anterior: equipos que quedaron listos, regresaron a taller, nuevos o quitados (pestaña `ACTUALIZACIONES`). |
 | **Catálogo** | Todos los equipos con foto y descripción. Al abrir uno: tomar o subir foto, **boquillas, bajantes y filtros** (cantidad + foto), ubicación GPS y **observaciones** de la revisión. |
 | **Ubicación** | Mapa satelital con los equipos que tienen GPS guardado. |
 | **Generar reporte** | PDF con el resumen campo/taller, por tipo y zona, equipos atrasados, observaciones y conteo de componentes. |
 
-**Días de atraso** = días pasados de la *FECHA DE REQUERIMIENTO POR PARTE DEL USUARIO*. Si el equipo ingresó al taller después de esa fecha (o no la tiene), se cuentan 30 días desde el ingreso (*Periodo para entrega*). Se cambia en `index.html` → `construir()`.
+**Días vencido** = días pasados de la *FECHA DE REQUERIMIENTO POR PARTE DEL USUARIO* (si no la tiene: ingreso + 30 días). **Listo** = tiene fecha en que el taller lo entregó; **en reparación / pendiente** = todo lo demás.
 
 ## Pestañas de la hoja
 | Pestaña | Para qué |
