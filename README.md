@@ -1,7 +1,7 @@
 # CATÁLOGO-EQUIPOS · Malezas y Madurantes
 
 App web (celular, escritorio y APK de Android) con el catálogo de equipos del Departamento de Malezas y Madurantes, Ingenio Madre Tierra.
-Los datos están en la hoja de Google Sheets **EQUIPOS TALLER MALEZAS**. Las fotos se guardan en la carpeta de Drive **EQUIPOS MALEZAS** (una subcarpeta por tipo de equipo y otra por código).
+Los datos están en la hoja de Google Sheets **EQUIPOS TALLER MALEZAS**. Todo vive en la cuenta **malezasymadurantes@madretierra.com.gt**. Las fotos se guardan en la carpeta de Drive **EQUIPOS MALEZAS** de esa cuenta (el script la crea sola) (una subcarpeta por tipo de equipo y otra por código).
 
 ## Qué hace
 | Sección | Contenido |

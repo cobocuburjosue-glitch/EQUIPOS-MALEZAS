@@ -8,11 +8,11 @@
  *   USUARIOS   -> USUARIO | CONTRASEÑA | ROL (ADMINISTRADOR / PUBLICO) | NOMBRE
  *   RESPALDO   -> copia de Hoja 1 antes de cada carga de Excel (se crea sola).
  *
- * Fotos: carpeta de Drive "EQUIPOS MALEZAS" / <GRUPO> / <CÓDIGO> /
+ * Fotos: carpeta de Drive "EQUIPOS MALEZAS" (en la cuenta malezasymadurantes) / <GRUPO> / <CÓDIGO> /
  */
 
 const SHEET_ID  = '1nodO0-XaXXS-LFMHDaH9HmFjpwG9JjiiVR2XSE4W4zc';
-const FOLDER_ID = '12MquXd4mkJdpxkQWW5rFb6ZfF-_gd_bw';   // EQUIPOS MALEZAS
+const CARPETA = 'EQUIPOS MALEZAS';   // se crea sola en el Drive de la cuenta que implementa el script
 const HOJA_DATOS = 'Hoja 1';
 const TZ = 'America/Guatemala';
 const TOKEN_DIAS = 30;
@@ -23,7 +23,21 @@ const TIPOS_FOTO = { EQUIPO: 'FOTO EQUIPO', BOQUILLAS: 'FOTO BOQUILLAS', BAJANTE
 
 /* ============================== utilidades ============================== */
 
-function ss_() { return SpreadsheetApp.openById(SHEET_ID); }
+function ss_() { return SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.openById(SHEET_ID); }
+
+/** Carpeta EQUIPOS MALEZAS en el Drive de la cuenta dueña del script (malezasymadurantes). */
+function carpetaRaiz_() {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('CARPETA_ID');
+  if (id) { try { const f = DriveApp.getFolderById(id); if (!f.isTrashed()) return f; } catch (e) {} }
+  const yo = Session.getEffectiveUser().getEmail();
+  const it = DriveApp.getRootFolder().getFoldersByName(CARPETA);
+  let f = null;
+  while (it.hasNext()) { const c = it.next(); if (!c.isTrashed() && c.getOwner() && c.getOwner().getEmail() === yo) { f = c; break; } }
+  if (!f) f = DriveApp.getRootFolder().createFolder(CARPETA);
+  props.setProperty('CARPETA_ID', f.getId());
+  return f;
+}
 function json_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
 function norm_(s) { return String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/\s+/g, ' ').trim(); }
 function ahora_() { return Utilities.formatDate(new Date(), TZ, 'dd/MM/yyyy HH:mm'); }
@@ -68,7 +82,7 @@ function doGet(e) {
   const p = (e && e.parameter) || {};
   if (p.action === 'diag') {
     const sh = hojaDatos_();
-    return json_({ ok: true, hoja: sh.getName(), filas: sh.getLastRow() - 1, carpeta: DriveApp.getFolderById(FOLDER_ID).getName() });
+    return json_({ ok: true, hoja: sh.getName(), filas: sh.getLastRow() - 1, carpeta: carpetaRaiz_().getName() });
   }
   return json_({ ok: true, app: 'Catálogo de equipos · Malezas y Madurantes' });
 }
@@ -205,7 +219,7 @@ function guardarCatalogo_(u, p) {
 }
 
 function carpetaEquipo_(codigo, grupo) {
-  const raiz = DriveApp.getFolderById(FOLDER_ID);
+  const raiz = carpetaRaiz_();
   const g = texto_(grupo || 'SIN GRUPO', 80).replace(/[\/\\]/g, '-');
   const it = raiz.getFoldersByName(g);
   const fg = it.hasNext() ? it.next() : raiz.createFolder(g);
@@ -279,7 +293,7 @@ function cargarExcel_(u, p) {
     // guarda el archivo original en Drive
     let url = '';
     if (p.archivoBase64) {
-      const raiz = DriveApp.getFolderById(FOLDER_ID);
+      const raiz = carpetaRaiz_();
       const it = raiz.getFoldersByName('EXCEL CARGADOS');
       const fx = it.hasNext() ? it.next() : raiz.createFolder('EXCEL CARGADOS');
       const nom = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd_HHmm') + '_' + texto_(p.archivoNombre || 'equipos.xlsx', 120);
@@ -295,6 +309,7 @@ function cargarExcel_(u, p) {
 /** Ejecútela una vez desde el editor para aceptar permisos de Hojas y Drive. */
 function autorizar() {
   Logger.log(ss_().getName());
-  Logger.log(DriveApp.getFolderById(FOLDER_ID).getName());
+  Logger.log('Cuenta: ' + Session.getEffectiveUser().getEmail());
+  Logger.log('Carpeta de fotos: ' + carpetaRaiz_().getUrl());
   hojaCatalogo_();
 }
