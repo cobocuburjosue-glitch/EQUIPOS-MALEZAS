@@ -406,6 +406,27 @@ dialog{box-shadow:0 0 0 1px rgba(57,255,176,.25),0 0 50px rgba(57,255,176,.12),0
 .subir{border:2px dashed var(--linea)}
 .subir.arrastre{border-color:var(--tallo);background:rgba(57,255,176,.06)}
 
+/* boquillas asignadas */
+.dlg-cuerpo > *,.sec{min-width:0}
+.dlg{overflow-x:hidden}
+.boq-res{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.boq-res .tag{font-size:12.5px;padding:3px 9px}
+.boq-res .tag b{color:var(--tallo)}
+table.boq td,table.boq th{white-space:nowrap}
+table.boq td.obs{white-space:normal;min-width:160px;color:var(--suave)}
+table.boq tr{cursor:default}
+.boq-acc{display:flex;gap:4px}
+.boq-acc button{border:1px solid var(--linea);background:var(--campo-in);border-radius:6px;width:32px;height:30px;cursor:pointer;color:var(--tinta)}
+.boq-acc button:hover{border-color:var(--tallo)}
+.boq-acc button.borrar:hover{border-color:var(--atraso);color:var(--atraso)}
+.boq-form{margin-top:12px;padding:14px;border:1px solid var(--tallo);border-radius:10px;background:rgba(57,255,176,.04);display:grid;gap:12px}
+.boq-form .g{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.boq-form .g .ancho{grid-column:span 2}
+@media (max-width:700px){.boq-form .g{grid-template-columns:1fr 1fr}.boq-form .g .ancho{grid-column:1/-1}}
+.boq-form .pie-f{display:flex;gap:8px;justify-content:flex-end}
+.ficha .boqs{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.ficha .boqs span{font-size:11px;padding:1px 7px;border-radius:6px;border:1px solid rgba(57,255,176,.35);color:var(--tallo)}
+
 /* foto completa (sin recortar) */
 .foto-grande{aspect-ratio:auto;min-height:180px;display:block;background:#000;cursor:zoom-in}
 .foto-grande img{display:block;width:100%;height:auto;max-height:72vh;object-fit:contain;margin:0 auto}
@@ -548,7 +569,12 @@ dialog{box-shadow:0 0 0 1px rgba(57,255,176,.25),0 0 50px rgba(57,255,176,.12),0
         <div class="solo-admin"><textarea id="dDesc" placeholder="Describa el equipo: marca, capacidad, color, detalles para reconocerlo…" style="min-height:80px"></textarea></div>
       </div>
       <div class="sec"><h3>Datos de taller</h3><div class="det-datos" id="dDatos"></div></div>
-      <div class="sec"><h3>Boquillas, bajantes y filtros</h3><div class="comps" id="dComps"></div></div>
+      <div class="sec"><h3>Boquillas asignadas</h3>
+        <div id="dBoq"></div>
+        <div class="solo-admin" style="margin-top:10px"><button class="btn" type="button" id="btnBoqNueva">+ Agregar boquilla</button></div>
+        <div id="boqForm" class="boq-form oculto"></div>
+      </div>
+      <div class="sec"><h3>Fotos de boquillas, bajantes y filtros</h3><div class="comps" id="dComps"></div></div>
       <div class="sec"><h3>Ubicación</h3>
         <div class="ubic">
           <div><label for="dUbic">Lugar (finca, lote, bodega…)</label><input type="text" id="dUbic" maxlength="200"></div>
@@ -580,7 +606,7 @@ dialog{box-shadow:0 0 0 1px rgba(57,255,176,.25),0 0 50px rgba(57,255,176,.12),0
   <div class="dlg">
     <div class="dlg-cab"><h2 id="rTitulo">Generar reporte</h2><button class="cerrar" type="button" data-cerrar aria-label="Cerrar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="dlg-cuerpo">
-      <p class="nota">El PDF trae el resumen general (listos en campo y en reparación), la tabla de equipos en reparación por zona y grupo, una hoja por zona con listos y en reparación, la última actualización, las observaciones y el conteo de boquillas, bajantes y filtros.</p>
+      <p class="nota">El PDF trae el resumen general (listos en campo y en reparación), la tabla de equipos en reparación por zona y grupo, una hoja por zona con listos y en reparación, la última actualización, las observaciones y las boquillas asignadas a cada equipo.</p>
       <div><label>Tipo de equipo</label><div class="chips" id="rGrupos"></div></div>
       <div><label>Zonas</label><div class="chips" id="rZonas" style="flex-wrap:wrap"></div></div>
       <div class="ubic">
@@ -720,6 +746,9 @@ const ordenZona = (a, b) => { const r = z => /^Zona \d/.test(z) ? 0 : 1; return 
 const plural = g => { const w = bonito(g).split(' ')[0].toLowerCase(); const m = {bomba:'bombas',aguilón:'aguilones',aguilon:'aguilones',tanque:'tanques',camión:'camiones',camion:'camiones',motor:'motores'}; return m[w] || 'equipos'; };
 const fCorta = d => d ? `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}` : '—';
 const cat = cod => S.catalogo[cod] || {};
+const boqDe = cod => (S.boquillas || []).filter(b => b.codigo === cod);
+const numB = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+const tiposBoq = l => { const m = {}; l.forEach(b => { if (b.boquilla) m[b.boquilla] = (m[b.boquilla] || 0) + (numB(b.total) || numB(b.cantidad)); }); return Object.entries(m).sort((a,b) => b[1] - a[1]); };
 const fotoUrl = (id, w=800) => id ? `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w${w}` : '';
 function fotoDe(cod, tipo='EQUIPO'){
   const local = S.fotosLocales[cod + '|' + tipo]; if (local) return local;
@@ -811,7 +840,7 @@ function alternar(arr, val, ev){
 function aplicar(v, base){
   const f = filtroDe(v), q = norm(f.q);
   let l = base.filter(e => (!f.grupos.length || f.grupos.includes(e.grupo)) && (!f.zonas.length || f.zonas.includes(e.zona)) && (!f.estado || e.estado === f.estado));
-  if (q) l = l.filter(e => norm([e.codigo, e.desc, e.grupo, e.zona, cat(e.codigo).DESCRIPCION, cat(e.codigo).UBICACION].join(' ')).includes(q));
+  if (q) l = l.filter(e => norm([e.codigo, e.desc, e.grupo, e.zona, cat(e.codigo).DESCRIPCION, cat(e.codigo).UBICACION, ...boqDe(e.codigo).map(b => b.boquilla + ' ' + b.tipoEquipo)].join(' ')).includes(q));
   const porCod = (a,b) => a.codigo.localeCompare(b.codigo, 'es', {numeric:true});
   const O = {
     codigo: porCod,
@@ -891,7 +920,8 @@ function pintarCatalogo(l){
       <div class="foto">${f ? `<img loading="lazy" src="${esc(f)}" alt="Foto de ${esc(e.codigo)}">` : `<div class="sinfoto">${SVG_CAM}Sin foto</div>`}<span class="estado ${ESTADOS[e.estado].c}">${ESTADOS[e.estado].t}</span></div>
       <div class="info"><div class="cod mono">${esc(e.codigo)}</div><div class="desc" style="font-size:13.5px;color:var(--suave)">${esc(c.DESCRIPCION || e.desc)}</div>
       <div class="meta"><span class="tag">${esc(bonito(e.grupo))}</span><span class="tag">${esc(e.zona)}</span></div>
-      ${cnt.length ? `<div class="cnt">${cnt.map(([k,n]) => `<span>${k}: <b>${esc(n)}</b></span>`).join('')}</div>` : ''}</div></button>`;
+      ${cnt.length ? `<div class="cnt">${cnt.map(([k,n]) => `<span>${k}: <b>${esc(n)}</b></span>`).join('')}</div>` : ''}
+      ${boqDe(e.codigo).length ? `<div class="boqs">${tiposBoq(boqDe(e.codigo)).map(([t]) => `<span>${esc(t)}</span>`).join('')}</div>` : ''}</div></button>`;
   }).join('');
 }
 
@@ -1051,6 +1081,8 @@ function abrirEquipo(cod){
       <div class="fila"><div><label for="n_${t}">Cantidad</label>${admin ? `<input type="number" min="0" step="1" inputmode="numeric" id="n_${t}" value="${esc(n)}">` : `<b style="font-size:20px">${n === '' ? '—' : esc(n)}</b>`}</div></div>
       <div class="acciones-foto solo-admin" style="margin:0"><button class="btn peq" type="button" data-foto="${t}" data-modo="camara">${SVG_CAM.replace('stroke-width="1.6"','stroke-width="2"')}Tomar</button><button class="btn peq" type="button" data-foto="${t}" data-modo="galeria">Subir</button></div></div>`;
   }).join('');
+  pintarBoquillas();
+  $('#boqForm').classList.add('oculto');
   $('#dUbic').value = c.UBICACION || ''; $('#dUbic').readOnly = !admin;
   ponerGps(c.LATITUD, c.LONGITUD);
   $('#dObs').value = c.OBSERVACIONES || '';
@@ -1060,6 +1092,71 @@ function abrirEquipo(cod){
   $('#dlgEquipo').showModal();
   $('#dlgCaja').scrollTop = 0;
 }
+/* ---------- boquillas asignadas al equipo ---------- */
+function pintarBoquillas(){
+  const e = S.actual, l = boqDe(e.codigo), admin = esAdmin();
+  if (!l.length){ $('#dBoq').innerHTML = `<p class="nota">Este equipo no tiene boquillas asignadas.</p>`; return; }
+  const tot = l.reduce((a, b) => a + (numB(b.total) || numB(b.cantidad)), 0);
+  $('#dBoq').innerHTML = `<div class="boq-res"><span class="tag">Total: <b>${tot}</b> boquillas</span>${tiposBoq(l).map(([t, n]) => `<span class="tag">${esc(t)} · <b>${n}</b></span>`).join('')}</div>
+    <div class="tabla-wrap"><table class="t boq"><thead><tr><th>Boquilla</th><th>Equipo</th><th>Tipo de control</th><th>Mes</th><th class="num">Cant.</th><th class="num">Extras</th><th class="num">Total</th><th class="num">Filtros</th><th>Observaciones</th>${admin ? '<th></th>' : ''}</tr></thead><tbody>
+    ${l.map(b => `<tr><td><b>${esc(b.boquilla)}</b></td><td>${esc(b.tipoEquipo)}</td><td>${esc(b.control)}</td><td>${esc(b.mes)}</td><td class="num">${esc(b.cantidad)}</td><td class="num">${esc(b.extras)}</td><td class="num"><b>${esc(b.total)}</b></td><td class="num">${esc(b.filtros)}</td><td class="obs">${esc(b.observaciones)}</td>
+      ${admin ? `<td><div class="boq-acc"><button type="button" data-boq-editar="${esc(b.id)}" aria-label="Editar">✎</button><button type="button" class="borrar" data-boq-borrar="${esc(b.id)}" aria-label="Borrar">🗑</button></div></td>` : ''}</tr>`).join('')}
+    </tbody></table></div>`;
+}
+function listaUnica(campo){ return [...new Set((S.boquillas || []).map(b => b[campo]).filter(Boolean))].sort(); }
+function formBoquilla(id){
+  const e = S.actual, b = (S.boquillas || []).find(x => x.id === id) || { zona: e.zona.replace(/^Zona /, ''), mes: '', control: '', tipoEquipo: '' };
+  const dl = (idl, campo) => `<datalist id="${idl}">${listaUnica(campo).map(v => `<option value="${esc(v)}">`).join('')}</datalist>`;
+  const f = $('#boqForm');
+  f.innerHTML = `<b>${id ? 'Editar boquilla' : 'Agregar boquilla a ' + esc(e.codigo)}</b>
+    <div class="g">
+      <div class="ancho"><label for="bfBoq">Tipo de boquilla *</label><input type="text" id="bfBoq" list="dlBoq" value="${esc(b.boquilla || '')}" placeholder="Elija o escriba, ej. TQ 15006 SS" autocomplete="off">${dl('dlBoq','boquilla')}</div>
+      <div><label for="bfCant">Cantidad</label><input type="number" id="bfCant" min="0" step="1" inputmode="numeric" value="${esc(b.cantidad || '')}"></div>
+      <div><label for="bfExt">Extras</label><input type="number" id="bfExt" min="0" step="1" inputmode="numeric" value="${esc(b.extras || '')}"></div>
+      <div><label for="bfTot">Total</label><input type="number" id="bfTot" min="0" step="1" inputmode="numeric" value="${esc(b.total || '')}"></div>
+      <div><label for="bfFil">Filtros</label><input type="number" id="bfFil" min="0" step="1" inputmode="numeric" value="${esc(b.filtros || '')}"></div>
+      <div><label for="bfEq">Equipo (Jacto, Matabi…)</label><input type="text" id="bfEq" list="dlEq" value="${esc(b.tipoEquipo || '')}" autocomplete="off">${dl('dlEq','tipoEquipo')}</div>
+      <div><label for="bfMes">Mes de entrega</label><input type="text" id="bfMes" list="dlMes" value="${esc(b.mes || '')}" autocomplete="off">${dl('dlMes','mes')}</div>
+      <div class="ancho"><label for="bfCtl">Tipo de control</label><input type="text" id="bfCtl" list="dlCtl" value="${esc(b.control || '')}" autocomplete="off">${dl('dlCtl','control')}</div>
+      <div class="ancho"><label for="bfObs">Observaciones</label><input type="text" id="bfObs" value="${esc(b.observaciones || '')}"></div>
+    </div>
+    <div class="pie-f"><button type="button" class="btn" id="bfCancelar">Cancelar</button><button type="button" class="btn prim" id="bfGuardar">${id ? 'Guardar boquilla' : 'Agregar'}</button></div>`;
+  f.classList.remove('oculto');
+  const tot = $('#bfTot'); let totManual = !!b.total && numB(b.total) !== numB(b.cantidad) + numB(b.extras);
+  const calc = () => { if (!totManual) tot.value = ($('#bfCant').value || $('#bfExt').value) ? numB($('#bfCant').value) + numB($('#bfExt').value) : ''; };
+  $('#bfCant').oninput = calc; $('#bfExt').oninput = calc; tot.oninput = () => { totManual = true; };
+  $('#bfCancelar').onclick = () => f.classList.add('oculto');
+  $('#bfGuardar').onclick = () => guardarBoquilla(id);
+  $('#bfBoq').focus();
+  f.scrollIntoView({ block:'nearest', behavior:'smooth' });
+}
+async function guardarBoquilla(id){
+  const e = S.actual;
+  const datos = { boquilla: $('#bfBoq').value.trim().toUpperCase(), cantidad: $('#bfCant').value, extras: $('#bfExt').value, total: $('#bfTot').value, filtros: $('#bfFil').value,
+    tipoEquipo: $('#bfEq').value.trim(), mes: $('#bfMes').value.trim(), control: $('#bfCtl').value.trim(), observaciones: $('#bfObs').value.trim() };
+  if (!id) datos.zona = e.zona.replace(/^Zona /, '');
+  if (!datos.boquilla) { toast('Escriba el tipo de boquilla.'); $('#bfBoq').focus(); return; }
+  const b = $('#bfGuardar'); b.disabled = true; b.textContent = 'Guardando…';
+  try {
+    const r = await api('boquilla', { id: id || '', codigo: e.codigo, datos });
+    const ex = (S.boquillas || []).find(x => x.id === r.id);
+    const fila = Object.assign(ex || { id: r.id, codigo: e.codigo }, datos, { por: S.ses.usuario.nombre, fecha: new Date().toLocaleString('es-GT') });
+    if (!ex) (S.boquillas = S.boquillas || []).push(fila);
+    guardarCache(); pintarBoquillas(); $('#boqForm').classList.add('oculto');
+    toast(id ? 'Boquilla actualizada.' : 'Boquilla agregada.');
+    if (S.vista === 'catalogo') pintarLista('catalogo');
+  } catch(err){ toast(err.message, 5000); b.disabled = false; b.textContent = id ? 'Guardar boquilla' : 'Agregar'; }
+}
+async function borrarBoquilla(id){
+  const b = (S.boquillas || []).find(x => x.id === id); if (!b) return;
+  if (!confirm(`¿Quitar ${b.boquilla} (${b.total || b.cantidad || 0}) de ${b.codigo}?`)) return;
+  try {
+    await api('boquillaBorrar', { id });
+    S.boquillas = S.boquillas.filter(x => x.id !== id); guardarCache(); pintarBoquillas(); toast('Boquilla quitada.');
+    if (S.vista === 'catalogo') pintarLista('catalogo');
+  } catch(err){ toast(err.message, 5000); }
+}
+
 function pintarFotoGrande(){
   const e = S.actual, f = fotoDe(e.codigo);
   $('#dFoto').innerHTML = f ? `<img src="${esc(f.replace(/sz=w\d+/, 'sz=w1600'))}" alt="Foto del equipo ${esc(e.codigo)}">` : `<div class="sinfoto" style="display:grid;place-items:center;gap:8px;color:var(--tenue)">${SVG_CAM.replace('<svg','<svg width="44" height="44"')}${esAdmin() ? 'Tome o suba una foto para reconocer el equipo' : 'Este equipo aún no tiene foto'}</div>`;
@@ -1353,6 +1450,18 @@ async function generarPdf(){
     doc.addPage(); titulo('Boquillas, bajantes y filtros por equipo');
     tabla({ startY:32, head:[['Código','Descripción','Zona','Boquillas','Bajantes','Filtros']], body:comps.map(e => { const c = cat(e.codigo); return [e.codigo, c.DESCRIPCION || e.desc, e.zona, c.BOQUILLAS, c.BAJANTES, c.FILTROS]; }), columnStyles:{3:{halign:'center'},4:{halign:'center'},5:{halign:'center'}} });
   }
+  const boqs = (S.boquillas || []).filter(b => E.some(e => e.codigo === b.codigo));
+  if (boqs.length){
+    doc.addPage(); titulo('Boquillas asignadas por equipo', `${boqs.reduce((a, b) => a + (numB(b.total) || numB(b.cantidad)), 0)} boquillas en ${new Set(boqs.map(b => b.codigo)).size} equipos`);
+    const zonaDe = c => (S.equipos.find(e => e.codigo === c) || {}).zona || '';
+    tabla({ startY:32, head:[['Código','Zona','Equipo','Tipo de control','Mes','Boquilla','Cant.','Extras','Total','Filtros','Observaciones']],
+      body:[...boqs].sort((a,b) => ordenZona(zonaDe(a.codigo), zonaDe(b.codigo)) || a.codigo.localeCompare(b.codigo,'es',{numeric:true})).map(b => [b.codigo, zonaDe(b.codigo), b.tipoEquipo, b.control, b.mes, b.boquilla, b.cantidad, b.extras, b.total, b.filtros, b.observaciones]),
+      columnStyles:{0:{fontStyle:'bold'},5:{fontStyle:'bold'},6:{halign:'center'},7:{halign:'center'},8:{halign:'center',fontStyle:'bold'},9:{halign:'center'},10:{cellWidth:50}} });
+    const tipos = tiposBoq(boqs);
+    let y = doc.lastAutoTable.finalY + 8; if (y > 175) { doc.addPage(); y = 20; }
+    doc.setFontSize(13); doc.setTextColor(...VERDE); doc.setFont('helvetica','bold'); doc.text('Total por tipo de boquilla', M, y); doc.setFont('helvetica','normal');
+    tabla({ startY:y + 3, head:[['Boquilla','Total']], body:tipos.map(([t,n]) => [t, n]), margin:{ left:M, right:W - M - 110 }, columnStyles:{1:{halign:'center',fontStyle:'bold'}} });
+  }
   const np = doc.internal.getNumberOfPages();
   for (let i = 1; i <= np; i++){ doc.setPage(i); doc.setFontSize(8); doc.setTextColor(140); doc.text('Catálogo de equipos · Malezas y Madurantes · Ingenio Madre Tierra · Creado por Cobo Cubur', M, HH - 6); doc.text(`Página ${i} de ${np}`, W - M, HH - 6, { align:'right' }); }
   const nombre = `Reporte equipos ${iso(H)} - Creado por Cobo Cubur.pdf`;
@@ -1365,10 +1474,11 @@ async function generarPdf(){
    SESIÓN Y DATOS
    =================================================================== */
 const esAdmin = () => S.ses?.usuario?.rol === 'ADMINISTRADOR';
-function guardarCache(){ guardar('cat_datos', { encabezados:S.encabezados, filas:S._filas, catalogo:S.catalogo, ultimaCarga:S.ultimaCarga, actualizaciones:S.actualizaciones, t:Date.now() }); }
+function guardarCache(){ guardar('cat_datos', { encabezados:S.encabezados, filas:S._filas, catalogo:S.catalogo, ultimaCarga:S.ultimaCarga, actualizaciones:S.actualizaciones, boquillas:S.boquillas, t:Date.now() }); }
 function usarDatos(d){
   S.encabezados = d.encabezados || []; S._filas = d.filas || []; S.catalogo = d.catalogo || {}; S.ultimaCarga = d.ultimaCarga || '';
   S.actualizaciones = d.actualizaciones || [];
+  S.boquillas = d.boquillas || [];
   S.equipos = construir(S.encabezados, S._filas);
   marcarCambios();
 }
@@ -1437,6 +1547,8 @@ document.addEventListener('click', ev => {
   if (vg){ const f = filtroDe('taller'); f.grupos = vg.dataset.vergrupo ? [vg.dataset.vergrupo] : []; f.zonas = vg.dataset.verzona ? [vg.dataset.verzona] : (filtroDe('inicio').zonas.slice()); if (!vg.dataset.vergrupo) f.grupos = filtroDe('inicio').grupos.slice(); f.estado = ''; f.q = ''; guardarFiltros(); ir('taller'); return; }
   const eq = t.closest('[data-eq]'); if (eq){ ev.preventDefault(); abrirEquipo(eq.dataset.eq); return; }
   const fo = t.closest('[data-foto]'); if (fo){ pedirFoto(fo.dataset.foto, fo.dataset.modo); return; }
+  const be = t.closest('[data-boq-editar]'); if (be){ formBoquilla(be.dataset.boqEditar); return; }
+  const bb = t.closest('[data-boq-borrar]'); if (bb){ borrarBoquilla(bb.dataset.boqBorrar); return; }
   const ver = t.closest('[data-ver], #dFoto'); if (ver){ const img = ver.querySelector('img'); if (img) verFoto(img.src.startsWith('data:') ? img.src : img.src.replace(/sz=w\d+/, 'sz=w2400')); return; }
   if (t.closest('.visor')) { t.closest('.visor').remove(); return; }
   const ce = t.closest('[data-cerrar]'); if (ce){ ce.closest('dialog').close(); return; }
@@ -1453,6 +1565,7 @@ document.addEventListener('keydown', ev => { if ((ev.key === 'Enter' || ev.key =
 $$('dialog').forEach(d => d.addEventListener('click', ev => { if (ev.target === d) d.close(); }));
 $('#btnGuardarEq').onclick = guardarEquipo;
 $('#btnGps').onclick = usarGps;
+$('#btnBoqNueva').onclick = () => formBoquilla('');
 $('#fotoCamara').onchange = alElegirFoto;
 $('#fotoGaleria').onchange = alElegirFoto;
 $('#btnExcel').onclick = () => $('#archivoExcel').click();

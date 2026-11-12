@@ -7,6 +7,8 @@
  *   CATALOGO   -> datos propios de la app por equipo (fotos, boquillas, bajantes, filtros, ubicación, observaciones).
  *   USUARIOS   -> USUARIO | CONTRASEÑA | ROL (ADMINISTRADOR / PUBLICO) | NOMBRE
  *   RESPALDO   -> copia de Hoja 1 antes de cada carga de Excel (se crea sola).
+ *   BOQUILLAS  -> tipos de boquilla asignados a cada equipo (varias filas por equipo).
+ *   ACTUALIZACIONES -> cambios detectados entre cargas de Excel.
  *
  * Fotos: carpeta de Drive "EQUIPOS MALEZAS" (en la cuenta malezasymadurantes) / <GRUPO> / <CÓDIGO> /
  */
@@ -143,6 +145,8 @@ function doPost(e) {
       case 'foto':      return json_(conSesion_(p.token, true, u => subirFoto_(u, p)));
       case 'catalogo':  return json_(conSesion_(p.token, true, u => guardarCatalogo_(u, p)));
       case 'excel':     return json_(conSesion_(p.token, true, u => cargarExcel_(u, p)));
+      case 'boquilla':  return json_(conSesion_(p.token, true, u => guardarBoquilla_(u, p)));
+      case 'boquillaBorrar': return json_(conSesion_(p.token, true, u => borrarBoquilla_(u, p)));
       case 'logout':    PropertiesService.getScriptProperties().deleteProperty('tok_' + p.token); return json_({ ok: true });
       default:          return json_({ ok: false, error: 'Acción desconocida.' });
     }
@@ -231,6 +235,7 @@ function datos_(u) {
   }
   const props = PropertiesService.getScriptProperties();
   return {
+    boquillas: leerBoquillas_(),
     actualizaciones: actualizaciones,
     ok: true,
     usuario: { usuario: u.usuario, nombre: u.nombre, rol: u.rol },
@@ -308,6 +313,79 @@ function subirFoto_(u, p) {
     sh.getRange(fila, m['FECHA ACTUALIZACION'] + 1).setValue(ahora_());
   } finally { lock.releaseLock(); }
   return { ok: true, id: f.getId(), carpeta: carpeta.getUrl() };
+}
+
+/* ============================== boquillas por equipo ============================== */
+
+const BOQ_COLS = ['ID', 'CODIGO DE EQUIPO', 'CODIGO EN ARCHIVO', 'ZONA', 'TIPO EQUIPO', 'TIPO DE CONTROL', 'MES DE ENTREGA', 'BOQUILLA',
+  'CANTIDAD', 'EXTRAS', 'TOTAL', 'FILTROS', 'OBSERVACIONES', 'ACTUALIZADO POR', 'FECHA ACTUALIZACION'];
+const BOQ_CAMPOS = { tipoEquipo: 'TIPO EQUIPO', control: 'TIPO DE CONTROL', mes: 'MES DE ENTREGA', boquilla: 'BOQUILLA', cantidad: 'CANTIDAD',
+  extras: 'EXTRAS', total: 'TOTAL', filtros: 'FILTROS', observaciones: 'OBSERVACIONES', zona: 'ZONA' };
+
+function hojaBoquillas_() {
+  const ss = ss_();
+  let sh = ss.getSheetByName('BOQUILLAS');
+  if (!sh) { sh = ss.insertSheet('BOQUILLAS'); sh.getRange(1, 1, 1, BOQ_COLS.length).setValues([BOQ_COLS]).setFontWeight('bold'); sh.setFrozenRows(1); }
+  return sh;
+}
+
+function leerBoquillas_() {
+  const sh = ss_().getSheetByName('BOQUILLAS');
+  if (!sh || sh.getLastRow() < 2) return [];
+  const m = mapa_(sh), v = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getValues();
+  const g = (r, c) => m[c] != null ? celda_(r[m[c]]) : '';
+  return v.filter(r => String(r[m['ID']]).trim() && String(r[m['CODIGO DE EQUIPO']]).trim()).map(r => ({
+    id: g(r, 'ID'), codigo: g(r, 'CODIGO DE EQUIPO'), zona: g(r, 'ZONA'), tipoEquipo: g(r, 'TIPO EQUIPO'), control: g(r, 'TIPO DE CONTROL'),
+    mes: g(r, 'MES DE ENTREGA'), boquilla: g(r, 'BOQUILLA'), cantidad: g(r, 'CANTIDAD'), extras: g(r, 'EXTRAS'), total: g(r, 'TOTAL'),
+    filtros: g(r, 'FILTROS'), observaciones: g(r, 'OBSERVACIONES'), por: g(r, 'ACTUALIZADO POR'), fecha: g(r, 'FECHA ACTUALIZACION')
+  }));
+}
+
+function guardarBoquilla_(u, p) {
+  const d = p.datos || {}, codigo = texto_(p.codigo, 80);
+  if (!codigo) return { ok: false, error: 'Falta el código del equipo.' };
+  if (!texto_(d.boquilla)) return { ok: false, error: 'Escriba el tipo de boquilla.' };
+  const sh = hojaBoquillas_();
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    const m = mapa_(sh);
+    let fila = 0, id = texto_(p.id, 20);
+    if (id && sh.getLastRow() > 1) {
+      const ids = sh.getRange(2, m['ID'] + 1, sh.getLastRow() - 1, 1).getValues();
+      for (let i = 0; i < ids.length; i++) if (String(ids[i][0]).trim() === id) { fila = i + 2; break; }
+    }
+    if (!fila) {
+      let max = 0;
+      if (sh.getLastRow() > 1) sh.getRange(2, m['ID'] + 1, sh.getLastRow() - 1, 1).getValues().forEach(r => { const n = parseInt(String(r[0]).replace(/\D/g, ''), 10); if (n > max) max = n; });
+      id = 'B' + String(max + 1).padStart(3, '0');
+      fila = sh.getLastRow() + 1;
+      sh.getRange(fila, m['ID'] + 1).setValue(id);
+      sh.getRange(fila, m['CODIGO DE EQUIPO'] + 1).setNumberFormat('@').setValue(codigo);
+    }
+    const num = v => v === '' || v == null || isNaN(Number(v)) ? '' : Number(v);
+    Object.keys(BOQ_CAMPOS).forEach(k => {
+      if (!(k in d) || m[BOQ_CAMPOS[k]] == null) return;
+      const v = ['cantidad', 'extras', 'total', 'filtros'].indexOf(k) >= 0 ? num(d[k]) : (k === 'boquilla' ? texto_(d[k], 80).toUpperCase() : texto_(d[k], 300));
+      sh.getRange(fila, m[BOQ_CAMPOS[k]] + 1).setValue(v);
+    });
+    sh.getRange(fila, m['ACTUALIZADO POR'] + 1).setValue(u.nombre);
+    sh.getRange(fila, m['FECHA ACTUALIZACION'] + 1).setValue(ahora_());
+    return { ok: true, id: id };
+  } finally { lock.releaseLock(); }
+}
+
+function borrarBoquilla_(u, p) {
+  const id = texto_(p.id, 20); if (!id) return { ok: false, error: 'Falta el ID.' };
+  const sh = hojaBoquillas_();
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    const m = mapa_(sh);
+    if (sh.getLastRow() > 1) {
+      const ids = sh.getRange(2, m['ID'] + 1, sh.getLastRow() - 1, 1).getValues();
+      for (let i = 0; i < ids.length; i++) if (String(ids[i][0]).trim() === id) { sh.deleteRow(i + 2); return { ok: true }; }
+    }
+    return { ok: false, error: 'No encontré esa boquilla.' };
+  } finally { lock.releaseLock(); }
 }
 
 /* ============================== carga de Excel ============================== */
