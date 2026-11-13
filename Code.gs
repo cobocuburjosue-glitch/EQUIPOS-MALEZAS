@@ -161,7 +161,33 @@ function doPost(e) {
 
 /* ============================== sesión ============================== */
 
+/* ===================== USUARIOS CENTRALES · MDE MT =====================
+   Si ID_USUARIOS_MDE tiene el ID de la hoja "USUARIOS MDE MT", los usuarios
+   salen de ahí (una sola lista para Vuelos, Calibración y Catálogo).
+   Si está vacío, se usa la pestaña USUARIOS de esta hoja, como antes.     */
+const ID_USUARIOS_MDE = '';
+
+function usuariosMDE_(modulo) {
+  const sh = SpreadsheetApp.openById(ID_USUARIOS_MDE).getSheetByName('USUARIOS');
+  if (!sh) throw new Error('La hoja USUARIOS MDE MT no tiene la pestaña USUARIOS.');
+  const v = sh.getDataRange().getValues(), h = v[0].map(norm_), c = k => h.indexOf(norm_(k));
+  const si = (r, k) => c(k) < 0 || norm_(r[c(k)]) !== 'NO';          // vacío = SI
+  return v.slice(1).filter(r => String(r[c('USUARIO')]).trim() && si(r, 'ACTIVO') && si(r, modulo)).map(r => ({
+    usuario: String(r[c('USUARIO')]).trim(),
+    clave: String(r[c('CONTRASEÑA')]).trim(),
+    nombre: String(r[c('NOMBRE')] || r[c('USUARIO')]).trim(),
+    correo: c('CORREO') >= 0 ? String(r[c('CORREO')]).trim() : '',
+    rol: norm_(r[c('ROL')]),
+    botones: c('BOTONES EXTRAS CALIBRACION') >= 0 ? norm_(r[c('BOTONES EXTRAS CALIBRACION')]) : ''
+  }));
+}
+/* ====================================================================== */
+
 function leerUsuarios_() {
+  if (ID_USUARIOS_MDE) return usuariosMDE_('CATALOGO EQUIPOS').map(u => ({
+    usuario: u.usuario, clave: u.clave, nombre: u.nombre,
+    rol: u.rol === 'ADMINISTRADOR' ? 'ADMINISTRADOR' : 'PUBLICO'
+  }));
   const sh = ss_().getSheetByName('USUARIOS');
   if (!sh || sh.getLastRow() < 2) return [];
   const m = mapa_(sh);
