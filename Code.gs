@@ -318,7 +318,7 @@ function subirFoto_(u, p) {
 /* ============================== boquillas por equipo ============================== */
 
 const BOQ_COLS = ['ID', 'CODIGO DE EQUIPO', 'CODIGO EN ARCHIVO', 'ZONA', 'TIPO EQUIPO', 'TIPO DE CONTROL', 'MES DE ENTREGA', 'BOQUILLA',
-  'CANTIDAD', 'EXTRAS', 'TOTAL', 'FILTROS', 'OBSERVACIONES', 'ACTUALIZADO POR', 'FECHA ACTUALIZACION'];
+  'CANTIDAD', 'EXTRAS', 'TOTAL', 'FILTROS', 'OBSERVACIONES', 'ACTUALIZADO POR', 'FECHA ACTUALIZACION', 'FOTO'];
 const BOQ_CAMPOS = { tipoEquipo: 'TIPO EQUIPO', control: 'TIPO DE CONTROL', mes: 'MES DE ENTREGA', boquilla: 'BOQUILLA', cantidad: 'CANTIDAD',
   extras: 'EXTRAS', total: 'TOTAL', filtros: 'FILTROS', observaciones: 'OBSERVACIONES', zona: 'ZONA' };
 
@@ -326,6 +326,8 @@ function hojaBoquillas_() {
   const ss = ss_();
   let sh = ss.getSheetByName('BOQUILLAS');
   if (!sh) { sh = ss.insertSheet('BOQUILLAS'); sh.getRange(1, 1, 1, BOQ_COLS.length).setValues([BOQ_COLS]).setFontWeight('bold'); sh.setFrozenRows(1); }
+  const h = sh.getRange(1, 1, 1, Math.max(1, sh.getLastColumn())).getValues()[0].map(norm_);
+  BOQ_COLS.forEach(c => { if (h.indexOf(norm_(c)) < 0) { sh.getRange(1, h.length + 1).setValue(c).setFontWeight('bold'); h.push(norm_(c)); } });
   return sh;
 }
 
@@ -337,7 +339,7 @@ function leerBoquillas_() {
   return v.filter(r => String(r[m['ID']]).trim() && String(r[m['CODIGO DE EQUIPO']]).trim()).map(r => ({
     id: g(r, 'ID'), codigo: g(r, 'CODIGO DE EQUIPO'), zona: g(r, 'ZONA'), tipoEquipo: g(r, 'TIPO EQUIPO'), control: g(r, 'TIPO DE CONTROL'),
     mes: g(r, 'MES DE ENTREGA'), boquilla: g(r, 'BOQUILLA'), cantidad: g(r, 'CANTIDAD'), extras: g(r, 'EXTRAS'), total: g(r, 'TOTAL'),
-    filtros: g(r, 'FILTROS'), observaciones: g(r, 'OBSERVACIONES'), por: g(r, 'ACTUALIZADO POR'), fecha: g(r, 'FECHA ACTUALIZACION')
+    filtros: g(r, 'FILTROS'), observaciones: g(r, 'OBSERVACIONES'), por: g(r, 'ACTUALIZADO POR'), fecha: g(r, 'FECHA ACTUALIZACION'), foto: g(r, 'FOTO')
   }));
 }
 
@@ -368,9 +370,21 @@ function guardarBoquilla_(u, p) {
       const v = ['cantidad', 'extras', 'total', 'filtros'].indexOf(k) >= 0 ? num(d[k]) : (k === 'boquilla' ? texto_(d[k], 80).toUpperCase() : texto_(d[k], 300));
       sh.getRange(fila, m[BOQ_CAMPOS[k]] + 1).setValue(v);
     });
+    // foto de la boquilla -> carpeta del equipo en Drive
+    let foto = '';
+    const b64 = String(p.base64 || '').replace(/^data:[^,]+,/, '');
+    if (b64) {
+      const carpeta = carpetaEquipo_(codigo, p.grupo);
+      const nom = codigo + '_BOQUILLA_' + texto_(d.boquilla || '', 40).replace(/[^A-Za-z0-9]+/g, '-') + '_' + Utilities.formatDate(new Date(), TZ, 'yyyyMMdd_HHmmss') + '.jpg';
+      const f = carpeta.createFile(Utilities.newBlob(Utilities.base64Decode(b64), 'image/jpeg', nom));
+      f.setDescription(codigo + ' · boquilla ' + (d.boquilla || '') + ' · subida por ' + u.nombre);
+      try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
+      foto = f.getId();
+      sh.getRange(fila, m['FOTO'] + 1).setValue(foto);
+    }
     sh.getRange(fila, m['ACTUALIZADO POR'] + 1).setValue(u.nombre);
     sh.getRange(fila, m['FECHA ACTUALIZACION'] + 1).setValue(ahora_());
-    return { ok: true, id: id };
+    return { ok: true, id: id, foto: foto };
   } finally { lock.releaseLock(); }
 }
 
