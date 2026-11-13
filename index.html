@@ -413,6 +413,11 @@ dialog{box-shadow:0 0 0 1px rgba(57,255,176,.25),0 0 50px rgba(57,255,176,.12),0
 .boq-res .tag{font-size:12.5px;padding:3px 9px}
 .boq-res .tag b{color:var(--tallo)}
 table.boq td,table.boq th{white-space:nowrap}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;min-width:90px;min-height:42px;border-radius:8px;border:1px solid var(--linea);background:var(--campo-in);color:var(--suave);font-weight:600;cursor:pointer}
+.seg button.activo{background:var(--caña-2);border-color:var(--tallo);color:#fff;box-shadow:0 0 12px rgba(57,255,176,.25)}
+.comp-et{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--oro);font-weight:700}
+.boq-res .tag.tot{background:var(--caña-2);color:#fff}
 .boq-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
 .boq-card{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;padding:10px;border:1px solid var(--linea);border-radius:10px;background:var(--campo-in)}
 .boq-card .bf,.bf-foto .bf{border-radius:8px;overflow:hidden;background:#000;display:grid;place-items:center;color:var(--tenue);font-size:12px}
@@ -584,13 +589,12 @@ table.boq tr{cursor:default}
         <p id="dDescTxt" style="margin:0"></p>
         <div class="solo-admin"><textarea id="dDesc" placeholder="Describa el equipo: marca, capacidad, color, detalles para reconocerlo…" style="min-height:80px"></textarea></div>
       </div>
-      <div class="sec"><h3>Datos de taller</h3><div class="det-datos" id="dDatos"></div></div>
-      <div class="sec"><h3>Boquillas asignadas</h3>
+      <div class="sec"><h3>Boquillas, filtros y bajantes asignados</h3>
         <div id="dBoq"></div>
-        <div class="solo-admin" style="margin-top:10px"><button class="btn" type="button" id="btnBoqNueva">+ Agregar boquilla</button></div>
+        <div class="solo-admin" style="margin-top:10px"><button class="btn" type="button" id="btnBoqNueva">+ Agregar boquilla, filtro o bajante</button></div>
         <div id="boqForm" class="boq-form oculto"></div>
       </div>
-      <div class="sec"><h3>Bajantes y filtros</h3><div class="comps" id="dComps"></div></div>
+      <div class="sec"><h3>Datos de taller</h3><div class="det-datos" id="dDatos"></div></div>
       <div class="sec"><h3>Ubicación</h3>
         <div class="ubic">
           <div><label for="dUbic">Lugar (finca, lote, bodega…)</label><input type="text" id="dUbic" maxlength="200"></div>
@@ -938,7 +942,7 @@ function pintarCatalogo(l){
       <div class="info"><div class="cod mono">${esc(e.codigo)}</div><div class="desc" style="font-size:13.5px;color:var(--suave)">${esc(c.DESCRIPCION || e.desc)}</div>
       <div class="meta"><span class="tag">${esc(bonito(e.grupo))}</span><span class="tag">${esc(e.zona)}</span></div>
       ${cnt.length ? `<div class="cnt">${cnt.map(([k,n]) => `<span>${k}: <b>${esc(n)}</b></span>`).join('')}</div>` : ''}
-      ${boqDe(e.codigo).length ? `<div class="boqs">${tiposBoq(boqDe(e.codigo)).map(([t]) => `<span>${esc(t)}</span>`).join('')}</div>` : ''}</div></button>`;
+      ${boqDe(e.codigo).length ? `<div class="boqs">${COMPONENTES.map(([c,,pl]) => { const n = boqDe(e.codigo).filter(b => compDe(b) === c).reduce((a, b) => a + totalBoq(b), 0); return n ? `<span>${pl}: ${n}</span>` : ''; }).join('')}</div>` : ''}</div></button>`;
   }).join('');
 }
 
@@ -1091,13 +1095,7 @@ function abrirEquipo(cod){
     D('Debía salir', fTxt(e.limite)) + D('Días en taller', e.diasTaller ?? '—') +
     D(e.estado === 'campo' ? 'Días tarde al salir' : 'Días de atraso', e.estado === 'sin' ? '—' : `<span style="color:${e.atraso>0?'var(--atraso)':'var(--campo)'}">${e.atraso}</span>`) +
     (e.cumpTaller ? D('Cumplimiento taller', esc(e.cumpTaller)) : '') + (e.cumpUsuario ? D('Cumplimiento usuario', esc(e.cumpUsuario)) : '') + (e.obsHoja ? D('Observación (Excel)', esc(e.obsHoja)) : '');
-  $('#dComps').innerHTML = ['BAJANTES','FILTROS'].map(t => {
-    const f = fotoDe(cod, t), n = c[t] ?? '';
-    return `<div class="comp"><b>${bonito(t)}</b>
-      <div class="ft" data-ver="${t}">${f ? `<img src="${esc(f)}" alt="Foto de ${t.toLowerCase()}">` : 'Sin foto'}</div>
-      <div class="fila"><div><label for="n_${t}">Cantidad</label>${admin ? `<input type="number" min="0" step="1" inputmode="numeric" id="n_${t}" value="${esc(n)}">` : `<b style="font-size:20px">${n === '' ? '—' : esc(n)}</b>`}</div></div>
-      <div class="acciones-foto solo-admin" style="margin:0"><button class="btn peq" type="button" data-foto="${t}" data-modo="camara">${SVG_CAM.replace('stroke-width="1.6"','stroke-width="2"')}Tomar</button><button class="btn peq" type="button" data-foto="${t}" data-modo="galeria">Subir</button></div></div>`;
-  }).join('');
+
   pintarBoquillas();
   $('#boqForm').classList.add('oculto');
   $('#dUbic').value = c.UBICACION || ''; $('#dUbic').readOnly = !admin;
@@ -1114,6 +1112,9 @@ function abrirEquipo(cod){
 const BOQ_TIPOS = ['ACCESORIO HERBICIDA','BOQUILLA CONICA AZUL','DG 9505EVS (50)','DGTJ 60 11004 VS','EQUIPO DE BAJANTES','TQ 15005 SS','TQ 15006 SS','TQ 15008 SS','TQ 15009 SS','XR8004VS'];
 const BOQ_CONTROLES = ['1er. Control Total','1er. Control Banda','2do control doble bajante','2do control Equipo PC','Foqueo quimico','Numerario'];
 const BOQ_EQUIPOS = ['ASPERJADORA','TANQUE PC','CAMION TANQUE PC','JACTO','MATABI'];
+const COMPONENTES = [['BOQUILLA','Boquilla','Boquillas'],['FILTRO','Filtro','Filtros'],['BAJANTE','Bajante','Bajantes']];
+const compDe = b => { const c = norm(b.componente || 'BOQUILLA'); return COMPONENTES.some(x => x[0] === c) ? c : 'BOQUILLA'; };
+const compTxt = (c, plural) => { const x = COMPONENTES.find(x => x[0] === c); return x ? x[plural ? 2 : 1] : bonito(c); };
 const BOQ_MESES = ['Ene.','Feb.','Mar.','Abr.','May.','Jun.','Jul.','Ago.','Sep.','Oct.','Nov.','Dic.'];
 const totalBoq = b => b.total !== '' && b.total != null ? numB(b.total) : numB(b.cantidad) + numB(b.extras);
 function opcionesDe(base, campo){
@@ -1134,14 +1135,19 @@ const fotoBoq = b => S.fotosLocales['boq|' + b.id] || (b.foto ? fotoUrl(b.foto, 
 function pintarBoquillas(){
   const e = S.actual, l = boqDe(e.codigo), admin = esAdmin();
   if (S.boquillas === undefined && admin){ $('#dBoq').innerHTML = `<p class="error">La app no recibió la pestaña BOQUILLAS: falta pegar el Code.gs nuevo en Apps Script e implementar una nueva versión.</p>`; return; }
-  if (!l.length){ $('#dBoq').innerHTML = `<p class="nota">Este equipo no tiene boquillas asignadas.</p>`; return; }
-  const tot = l.reduce((a, b) => a + totalBoq(b), 0);
-  const porTipo = {}; l.forEach(b => porTipo[b.boquilla] = (porTipo[b.boquilla] || 0) + totalBoq(b));
-  $('#dBoq').innerHTML = `<div class="boq-res"><span class="tag">Total: <b>${tot}</b> boquillas en ${l.length} asignación${l.length===1?'':'es'}</span>${Object.entries(porTipo).sort((a,b) => b[1]-a[1]).map(([t, n]) => `<span class="tag">${esc(t)} · <b>${n}</b></span>`).join('')}</div>
-    <div class="boq-cards">${l.map(b => { const f = fotoBoq(b); return `<div class="boq-card">
+  if (!l.length){ $('#dBoq').innerHTML = `<p class="nota">Este equipo no tiene boquillas, filtros ni bajantes asignados.</p>`; return; }
+  // desglose por componente y por tipo
+  const res = COMPONENTES.map(([c]) => {
+    const lc = l.filter(b => compDe(b) === c); if (!lc.length) return '';
+    const tot = lc.reduce((a, b) => a + totalBoq(b), 0);
+    const porTipo = {}; lc.forEach(b => porTipo[b.boquilla] = (porTipo[b.boquilla] || 0) + totalBoq(b));
+    return `<div class="boq-res"><span class="tag tot">${compTxt(c, true)}: <b>${tot}</b></span>${Object.entries(porTipo).sort((a,b) => b[1]-a[1]).map(([t, n]) => `<span class="tag">${esc(t)} · <b>${n}</b></span>`).join('')}</div>`;
+  }).join('');
+  const orden = c => COMPONENTES.findIndex(x => x[0] === c);
+  $('#dBoq').innerHTML = `${res}<div class="boq-cards">${[...l].sort((a,b) => orden(compDe(a)) - orden(compDe(b))).map(b => { const f = fotoBoq(b); return `<div class="boq-card">
       <div class="bf" ${f ? `data-verfoto="${esc(f)}"` : ''}>${f ? `<img src="${esc(f)}" alt="Foto de ${esc(b.boquilla)}" loading="lazy">` : '<span>Sin foto</span>'}</div>
-      <div class="bi"><b>${esc(b.boquilla)}</b>
-        <div class="bn"><span><small>Total</small><b>${totalBoq(b)}</b></span>${b.filtros !== '' && b.filtros != null ? `<span><small>Filtros</small><b>${esc(b.filtros)}</b></span>` : ''}</div>
+      <div class="bi"><span class="comp-et">${compTxt(compDe(b))}</span><b>${esc(b.boquilla)}</b>
+        <div class="bn"><span><small>Cantidad</small><b>${totalBoq(b)}</b></span>${b.filtros !== '' && b.filtros != null && compDe(b) === 'BOQUILLA' ? `<span><small>Filtros</small><b>${esc(b.filtros)}</b></span>` : ''}</div>
         <div class="bm">${[b.control, b.tipoEquipo, b.mes].filter(Boolean).map(esc).join(' · ')}</div>
         ${b.observaciones ? `<div class="bm">${esc(b.observaciones)}</div>` : ''}
         ${admin ? `<div class="boq-acc"><button type="button" data-boq-editar="${esc(b.id)}" aria-label="Editar">✎ Editar</button><button type="button" class="borrar" data-boq-borrar="${esc(b.id)}" aria-label="Quitar">🗑</button></div>` : ''}
@@ -1153,14 +1159,15 @@ function formBoquilla(id){
   const eqDef = /AGUILON/.test(e.grupo) ? 'ASPERJADORA' : /CAMION/.test(e.grupo) ? 'CAMION TANQUE PC' : /PRESION/.test(e.grupo) ? 'TANQUE PC' : '';
   boqFoto = null;
   const f = $('#boqForm'), fotoAnt = id ? fotoBoq(b) : '';
-  f.innerHTML = `<b>${id ? 'Editar boquilla de ' + esc(e.codigo) : 'Agregar boquilla a ' + esc(e.codigo)}</b>
+  const comp = id ? compDe(b) : 'BOQUILLA';
+  f.innerHTML = `<b>${id ? 'Editar ' + compTxt(comp).toLowerCase() + ' de ' + esc(e.codigo) : 'Agregar a ' + esc(e.codigo)}</b>
     <div class="boq-form-2">
       <div class="bf-foto"><div class="bf" id="bfPrev">${fotoAnt ? `<img src="${esc(fotoAnt)}" alt="">` : '<span>Sin foto</span>'}</div>
         <div class="acciones-foto" style="margin:8px 0 0"><button type="button" class="btn peq" id="bfCam">${SVG_CAM.replace('stroke-width="1.6"','stroke-width="2"')}Tomar foto</button><button type="button" class="btn peq" id="bfGal">Subir foto</button></div></div>
       <div class="g">
-        <div class="ancho"><label for="bfBoq">Tipo de boquilla *</label>${selOtro('bfBoq', opcionesDe(BOQ_TIPOS, 'boquilla'), b.boquilla || '', 'Elija el tipo de boquilla')}</div>
+        <div class="ancho"><label>Qué va a agregar *</label><div class="seg" id="bfComp">${COMPONENTES.map(([c, t]) => `<button type="button" data-comp="${c}" class="${c === comp ? 'activo' : ''}">${t}</button>`).join('')}</div></div>
+        <div class="ancho"><label for="bfBoq" id="bfBoqLbl">Tipo *</label><div id="bfBoqCaja"></div></div>
         <div><label for="bfTot">Cantidad total</label><input type="number" id="bfTot" min="0" step="1" inputmode="numeric" value="${id ? totalBoq(b) : ''}"></div>
-        <div><label for="bfFil">Filtros</label><input type="number" id="bfFil" min="0" step="1" inputmode="numeric" value="${esc(b.filtros ?? '')}"></div>
         <div class="ancho"><label for="bfCtl">Tipo de control</label>${selOtro('bfCtl', opcionesDe(BOQ_CONTROLES, 'control'), b.control || '', 'Elija el tipo de control')}</div>
         <div><label for="bfEq">Equipo</label>${selOtro('bfEq', opcionesDe(BOQ_EQUIPOS, 'tipoEquipo'), id ? (b.tipoEquipo || '') : eqDef, 'Elija')}</div>
         <div><label for="bfMes">Mes de entrega</label>${selOtro('bfMes', opcionesDe(BOQ_MESES, 'mes'), id ? (b.mes || '') : BOQ_MESES[new Date().getMonth()], 'Elija')}</div>
@@ -1169,7 +1176,20 @@ function formBoquilla(id){
     </div>
     <div class="pie-f"><button type="button" class="btn" id="bfCancelar">Cancelar</button><button type="button" class="btn prim" id="bfGuardar">${id ? 'Guardar boquilla' : 'Agregar'}</button></div>`;
   f.classList.remove('oculto');
-  $$('select[data-otro]', f).forEach(sl => sl.onchange = () => { const o = $('#' + sl.dataset.otro); o.classList.toggle('oculto', sl.value !== '__otro'); if (sl.value === '__otro') o.focus(); });
+  // la lista de "Tipo" cambia según sea boquilla, filtro o bajante
+  let compSel = comp;
+  const pintarTipo = (valor) => {
+    const base = compSel === 'BOQUILLA' ? BOQ_TIPOS : [];
+    const ops = opcionesDe(base, 'boquilla').filter(o => compSel === 'BOQUILLA' ? !(S.boquillas || []).some(x => norm(x.boquilla) === norm(o) && compDe(x) !== 'BOQUILLA') : (S.boquillas || []).some(x => norm(x.boquilla) === norm(o) && compDe(x) === compSel));
+    $('#bfBoqLbl').textContent = `Tipo de ${compTxt(compSel).toLowerCase()} *`;
+    $('#bfBoqCaja').innerHTML = selOtro('bfBoq', ops, valor, `Elija el tipo de ${compTxt(compSel).toLowerCase()}`);
+    const sl = $('#bfBoq'); if (!ops.length && !valor) { sl.value = '__otro'; $('#bfBoq_o').classList.remove('oculto'); $('#bfBoq_o').placeholder = compSel === 'FILTRO' ? 'Ej. Filtro de línea malla 50' : 'Ej. Bajante doble 60 cm'; }
+    sl.onchange = () => { const o = $('#bfBoq_o'); o.classList.toggle('oculto', sl.value !== '__otro'); if (sl.value === '__otro') o.focus(); };
+  };
+  pintarTipo(b.boquilla || '');
+  $('#bfComp').onclick = ev => { const x = ev.target.closest('[data-comp]'); if (!x || x.dataset.comp === compSel) return; compSel = x.dataset.comp; $$('#bfComp button').forEach(y => y.classList.toggle('activo', y === x)); pintarTipo(''); };
+  f.dataset.comp = comp; f._comp = () => compSel;
+  $$('select[data-otro]', f).forEach(sl => { if (sl.id !== 'bfBoq') sl.onchange = () => { const o = $('#' + sl.dataset.otro); o.classList.toggle('oculto', sl.value !== '__otro'); if (sl.value === '__otro') o.focus(); }; });
   $('#bfCam').onclick = () => { fotoPend = 'BOQFORM'; const i = $('#fotoCamara'); i.value = ''; i.click(); };
   $('#bfGal').onclick = () => { fotoPend = 'BOQFORM'; const i = $('#fotoGaleria'); i.value = ''; i.click(); };
   $('#bfCancelar').onclick = () => { f.classList.add('oculto'); boqFoto = null; };
@@ -1179,9 +1199,9 @@ function formBoquilla(id){
 async function guardarBoquilla(id){
   const e = S.actual;
   const total = $('#bfTot').value;
-  const datos = { boquilla: valSel('bfBoq').toUpperCase(), total, filtros: $('#bfFil').value, tipoEquipo: valSel('bfEq'), mes: valSel('bfMes'), control: valSel('bfCtl'), observaciones: $('#bfObs').value.trim() };
+  const datos = { componente: $('#boqForm')._comp(), boquilla: valSel('bfBoq').toUpperCase(), total, tipoEquipo: valSel('bfEq'), mes: valSel('bfMes'), control: valSel('bfCtl'), observaciones: $('#bfObs').value.trim() };
   if (!id) { datos.zona = e.zona.replace(/^Zona /, ''); datos.cantidad = total; datos.extras = ''; }
-  if (!datos.boquilla) { toast('Elija el tipo de boquilla.'); $('#bfBoq').focus(); return; }
+  if (!datos.boquilla) { toast(`Elija o escriba el tipo de ${compTxt(datos.componente).toLowerCase()}.`); $('#bfBoq').focus(); return; }
   const b = $('#bfGuardar'); b.disabled = true; b.textContent = boqFoto ? 'Subiendo foto…' : 'Guardando…';
   try {
     const r = await api('boquilla', { id: id || '', codigo: e.codigo, grupo: e.grupo, datos, base64: boqFoto || '' });
@@ -1192,16 +1212,16 @@ async function guardarBoquilla(id){
     if (!ex) (S.boquillas = S.boquillas || []).push(fila);
     boqFoto = null;
     guardarCache(); pintarBoquillas(); $('#boqForm').classList.add('oculto');
-    toast(id ? 'Boquilla actualizada.' : 'Boquilla agregada.');
+    toast(`${compTxt(datos.componente)} ${id ? 'actualizado' : 'agregado'}.`);
     if (S.vista === 'catalogo') pintarLista('catalogo');
   } catch(err){ toast(err.message, 5000); b.disabled = false; b.textContent = id ? 'Guardar boquilla' : 'Agregar'; }
 }
 async function borrarBoquilla(id){
   const b = (S.boquillas || []).find(x => x.id === id); if (!b) return;
-  if (!confirm(`¿Quitar ${b.boquilla} (${totalBoq(b)}) de ${b.codigo}?`)) return;
+  if (!confirm(`¿Quitar ${compTxt(compDe(b)).toLowerCase()} ${b.boquilla} (${totalBoq(b)}) de ${b.codigo}?`)) return;
   try {
     await api('boquillaBorrar', { id });
-    S.boquillas = S.boquillas.filter(x => x.id !== id); guardarCache(); pintarBoquillas(); toast('Boquilla quitada.');
+    S.boquillas = S.boquillas.filter(x => x.id !== id); guardarCache(); pintarBoquillas(); toast('Quitado.');
     if (S.vista === 'catalogo') pintarLista('catalogo');
   } catch(err){ toast(err.message, 5000); }
 }
@@ -1220,7 +1240,6 @@ function ponerGps(lat, lng){
 async function guardarEquipo(){
   const e = S.actual; if (!e) return;
   const datos = { descripcion: $('#dDesc').value.trim(), ubicacion: $('#dUbic').value.trim(), observaciones: $('#dObs').value.trim(), lat: $('#dGps').dataset.lat || '', lng: $('#dGps').dataset.lng || '' };
-  ['BAJANTES','FILTROS'].forEach(t => { const i = $('#n_' + t); if (i) datos[t.toLowerCase()] = i.value; });
   const b = $('#btnGuardarEq'); b.disabled = true; b.textContent = 'Guardando…';
   try {
     await api('catalogo', { codigo: e.codigo, datos });
@@ -1506,15 +1525,15 @@ async function generarPdf(){
   }
   const boqs = (S.boquillas || []).filter(b => E.some(e => e.codigo === b.codigo));
   if (boqs.length){
-    doc.addPage(); titulo('Boquillas asignadas por equipo', `${boqs.reduce((a, b) => a + totalBoq(b), 0)} boquillas en ${new Set(boqs.map(b => b.codigo)).size} equipos`);
+    doc.addPage(); titulo('Boquillas, filtros y bajantes por equipo', COMPONENTES.map(([c,,pl]) => `${pl}: ${boqs.filter(b => compDe(b) === c).reduce((a, b) => a + totalBoq(b), 0)}`).join(' · ') + ` · en ${new Set(boqs.map(b => b.codigo)).size} equipos`);
     const zonaDe = c => (S.equipos.find(e => e.codigo === c) || {}).zona || '';
-    tabla({ startY:32, head:[['Código','Zona','Boquilla','Total','Filtros','Tipo de control','Equipo','Mes','Observaciones']],
-      body:[...boqs].sort((a,b) => ordenZona(zonaDe(a.codigo), zonaDe(b.codigo)) || a.codigo.localeCompare(b.codigo,'es',{numeric:true})).map(b => [b.codigo, zonaDe(b.codigo), b.boquilla, totalBoq(b), b.filtros, b.control, b.tipoEquipo, b.mes, b.observaciones]),
-      columnStyles:{0:{fontStyle:'bold'},2:{fontStyle:'bold'},3:{halign:'center',fontStyle:'bold'},4:{halign:'center'},8:{cellWidth:55}} });
+    tabla({ startY:32, head:[['Código','Zona','Componente','Tipo','Cantidad','Tipo de control','Equipo','Mes','Observaciones']],
+      body:[...boqs].sort((a,b) => ordenZona(zonaDe(a.codigo), zonaDe(b.codigo)) || a.codigo.localeCompare(b.codigo,'es',{numeric:true})).map(b => [b.codigo, zonaDe(b.codigo), compTxt(compDe(b)), b.boquilla, totalBoq(b), b.control, b.tipoEquipo, b.mes, b.observaciones]),
+      columnStyles:{0:{fontStyle:'bold'},3:{fontStyle:'bold'},4:{halign:'center',fontStyle:'bold'},8:{cellWidth:55}} });
     const tipos = tiposBoq(boqs);
     let y = doc.lastAutoTable.finalY + 8; if (y > 175) { doc.addPage(); y = 20; }
-    doc.setFontSize(13); doc.setTextColor(...VERDE); doc.setFont('helvetica','bold'); doc.text('Total por tipo de boquilla', M, y); doc.setFont('helvetica','normal');
-    tabla({ startY:y + 3, head:[['Boquilla','Total']], body:tipos.map(([t,n]) => [t, n]), margin:{ left:M, right:W - M - 110 }, columnStyles:{1:{halign:'center',fontStyle:'bold'}} });
+    doc.setFontSize(13); doc.setTextColor(...VERDE); doc.setFont('helvetica','bold'); doc.text('Total por tipo', M, y); doc.setFont('helvetica','normal');
+    tabla({ startY:y + 3, head:[['Tipo','Total']], body:tipos.map(([t,n]) => [t, n]), margin:{ left:M, right:W - M - 110 }, columnStyles:{1:{halign:'center',fontStyle:'bold'}} });
   }
   const np = doc.internal.getNumberOfPages();
   for (let i = 1; i <= np; i++){ doc.setPage(i); doc.setFontSize(8); doc.setTextColor(140); doc.text('Catálogo de equipos · Malezas y Madurantes · Ingenio Madre Tierra · Creado por Cobo Cubur', M, HH - 6); doc.text(`Página ${i} de ${np}`, W - M, HH - 6, { align:'right' }); }

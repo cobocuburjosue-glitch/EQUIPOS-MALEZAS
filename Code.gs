@@ -7,7 +7,7 @@
  *   CATALOGO   -> datos propios de la app por equipo (fotos, boquillas, bajantes, filtros, ubicación, observaciones).
  *   USUARIOS   -> USUARIO | CONTRASEÑA | ROL (ADMINISTRADOR / PUBLICO) | NOMBRE
  *   RESPALDO   -> copia de Hoja 1 antes de cada carga de Excel (se crea sola).
- *   BOQUILLAS  -> tipos de boquilla asignados a cada equipo (varias filas por equipo).
+ *   BOQUILLAS  -> boquillas, filtros y bajantes asignados a mano a cada equipo (columna COMPONENTE).
  *   ACTUALIZACIONES -> cambios detectados entre cargas de Excel.
  *
  * Fotos: carpeta de Drive "EQUIPOS MALEZAS" (en la cuenta malezasymadurantes) / <GRUPO> / <CÓDIGO> /
@@ -68,7 +68,11 @@ function hojaCatalogo_() {
   if (!sh) { sh = ss.insertSheet('CATALOGO'); sh.setFrozenRows(1); }
   const n = Math.max(sh.getLastColumn(), 1);
   const h = sh.getRange(1, 1, 1, n).getValues()[0].map(norm_);
-  CAT_COLS.forEach(c => { if (h.indexOf(norm_(c)) < 0) { sh.getRange(1, h.length + 1).setValue(c).setFontWeight('bold'); h.push(norm_(c)); } });
+  CAT_COLS.forEach(c => {
+    if (h.indexOf(norm_(c)) >= 0) return;
+    if (sh.getMaxColumns() < h.length + 1) sh.insertColumnsAfter(sh.getMaxColumns(), 1);
+    sh.getRange(1, h.length + 1).setValue(c).setFontWeight('bold'); h.push(norm_(c));
+  });
   return sh;
 }
 
@@ -318,16 +322,20 @@ function subirFoto_(u, p) {
 /* ============================== boquillas por equipo ============================== */
 
 const BOQ_COLS = ['ID', 'CODIGO DE EQUIPO', 'CODIGO EN ARCHIVO', 'ZONA', 'TIPO EQUIPO', 'TIPO DE CONTROL', 'MES DE ENTREGA', 'BOQUILLA',
-  'CANTIDAD', 'EXTRAS', 'TOTAL', 'FILTROS', 'OBSERVACIONES', 'ACTUALIZADO POR', 'FECHA ACTUALIZACION', 'FOTO'];
+  'CANTIDAD', 'EXTRAS', 'TOTAL', 'FILTROS', 'OBSERVACIONES', 'ACTUALIZADO POR', 'FECHA ACTUALIZACION', 'FOTO', 'COMPONENTE'];
 const BOQ_CAMPOS = { tipoEquipo: 'TIPO EQUIPO', control: 'TIPO DE CONTROL', mes: 'MES DE ENTREGA', boquilla: 'BOQUILLA', cantidad: 'CANTIDAD',
-  extras: 'EXTRAS', total: 'TOTAL', filtros: 'FILTROS', observaciones: 'OBSERVACIONES', zona: 'ZONA' };
+  extras: 'EXTRAS', total: 'TOTAL', filtros: 'FILTROS', observaciones: 'OBSERVACIONES', zona: 'ZONA', componente: 'COMPONENTE' };
 
 function hojaBoquillas_() {
   const ss = ss_();
   let sh = ss.getSheetByName('BOQUILLAS');
   if (!sh) { sh = ss.insertSheet('BOQUILLAS'); sh.getRange(1, 1, 1, BOQ_COLS.length).setValues([BOQ_COLS]).setFontWeight('bold'); sh.setFrozenRows(1); }
   const h = sh.getRange(1, 1, 1, Math.max(1, sh.getLastColumn())).getValues()[0].map(norm_);
-  BOQ_COLS.forEach(c => { if (h.indexOf(norm_(c)) < 0) { sh.getRange(1, h.length + 1).setValue(c).setFontWeight('bold'); h.push(norm_(c)); } });
+  BOQ_COLS.forEach(c => {
+    if (h.indexOf(norm_(c)) >= 0) return;
+    if (sh.getMaxColumns() < h.length + 1) sh.insertColumnsAfter(sh.getMaxColumns(), 1);
+    sh.getRange(1, h.length + 1).setValue(c).setFontWeight('bold'); h.push(norm_(c));
+  });
   return sh;
 }
 
@@ -339,7 +347,7 @@ function leerBoquillas_() {
   return v.filter(r => String(r[m['ID']]).trim() && String(r[m['CODIGO DE EQUIPO']]).trim()).map(r => ({
     id: g(r, 'ID'), codigo: g(r, 'CODIGO DE EQUIPO'), zona: g(r, 'ZONA'), tipoEquipo: g(r, 'TIPO EQUIPO'), control: g(r, 'TIPO DE CONTROL'),
     mes: g(r, 'MES DE ENTREGA'), boquilla: g(r, 'BOQUILLA'), cantidad: g(r, 'CANTIDAD'), extras: g(r, 'EXTRAS'), total: g(r, 'TOTAL'),
-    filtros: g(r, 'FILTROS'), observaciones: g(r, 'OBSERVACIONES'), por: g(r, 'ACTUALIZADO POR'), fecha: g(r, 'FECHA ACTUALIZACION'), foto: g(r, 'FOTO')
+    filtros: g(r, 'FILTROS'), observaciones: g(r, 'OBSERVACIONES'), por: g(r, 'ACTUALIZADO POR'), fecha: g(r, 'FECHA ACTUALIZACION'), foto: g(r, 'FOTO'), componente: g(r, 'COMPONENTE') || 'BOQUILLA'
   }));
 }
 
@@ -367,7 +375,7 @@ function guardarBoquilla_(u, p) {
     const num = v => v === '' || v == null || isNaN(Number(v)) ? '' : Number(v);
     Object.keys(BOQ_CAMPOS).forEach(k => {
       if (!(k in d) || m[BOQ_CAMPOS[k]] == null) return;
-      const v = ['cantidad', 'extras', 'total', 'filtros'].indexOf(k) >= 0 ? num(d[k]) : (k === 'boquilla' ? texto_(d[k], 80).toUpperCase() : texto_(d[k], 300));
+      const v = ['cantidad', 'extras', 'total', 'filtros'].indexOf(k) >= 0 ? num(d[k]) : (k === 'boquilla' || k === 'componente' ? texto_(d[k], 80).toUpperCase() : texto_(d[k], 300));
       sh.getRange(fila, m[BOQ_CAMPOS[k]] + 1).setValue(v);
     });
     // foto de la boquilla -> carpeta del equipo en Drive
@@ -375,7 +383,7 @@ function guardarBoquilla_(u, p) {
     const b64 = String(p.base64 || '').replace(/^data:[^,]+,/, '');
     if (b64) {
       const carpeta = carpetaEquipo_(codigo, p.grupo);
-      const nom = codigo + '_BOQUILLA_' + texto_(d.boquilla || '', 40).replace(/[^A-Za-z0-9]+/g, '-') + '_' + Utilities.formatDate(new Date(), TZ, 'yyyyMMdd_HHmmss') + '.jpg';
+      const nom = codigo + '_' + (texto_(d.componente, 20).toUpperCase() || 'BOQUILLA') + '_' + texto_(d.boquilla || '', 40).replace(/[^A-Za-z0-9]+/g, '-') + '_' + Utilities.formatDate(new Date(), TZ, 'yyyyMMdd_HHmmss') + '.jpg';
       const f = carpeta.createFile(Utilities.newBlob(Utilities.base64Decode(b64), 'image/jpeg', nom));
       f.setDescription(codigo + ' · boquilla ' + (d.boquilla || '') + ' · subida por ' + u.nombre);
       try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
