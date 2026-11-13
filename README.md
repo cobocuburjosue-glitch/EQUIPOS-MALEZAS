@@ -21,7 +21,8 @@ Los datos están en la hoja de Google Sheets **EQUIPOS TALLER MALEZAS**. Todo vi
 |---|---|
 | `Hoja 1` | El Excel de malezas. Se reemplaza al cargar un Excel nuevo (antes se copia en la pestaña oculta `RESPALDO`). |
 | `CATALOGO` | Lo que se llena desde la app: descripción, fotos (ID de Drive), boquillas, bajantes, filtros, GPS, observaciones. Una carga de Excel **no** la toca. |
-| `BOQUILLAS` | Tipos de boquilla asignados a cada equipo (boquilla, cantidad, extras, total, filtros, tipo de control, mes). Se agregan, editan o quitan desde la ficha del equipo en el Catálogo. |
+| `BOQUILLAS` | Solo las boquillas que se asignan a mano desde la app (botón **+ Agregar boquilla** en la ficha del equipo): tipo, cantidad total, filtros, tipo de control, equipo, mes y foto. |
+| `BOQUILLAS EXCEL (referencia)` | El Excel de boquillas original, solo como consulta. La app no lo muestra; de ahí salen las listas de tipos de boquilla y tipos de control. |
 | `USUARIOS` | `USUARIO · CONTRASEÑA · ROL · NOMBRE`. ROL `ADMINISTRADOR` edita todo; `PUBLICO` solo consulta y genera reportes. |
 
 ## 1. Apps Script (una sola vez)

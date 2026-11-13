@@ -56,7 +56,7 @@ function hojaDatos_() {
   if (sh) return sh;
   // si cambiaron el nombre, busca la pestaña que tenga "CODIGO DE EQUIPO" en el encabezado
   return ss.getSheets().find(s => {
-    if (['CATALOGO', 'USUARIOS', 'RESPALDO'].indexOf(s.getName()) >= 0) return false;
+    if (['CATALOGO', 'USUARIOS', 'RESPALDO', 'ACTUALIZACIONES'].indexOf(s.getName()) >= 0 || /^BOQUILLAS/.test(s.getName())) return false;
     const h = s.getRange(1, 1, 1, Math.max(1, s.getLastColumn())).getValues()[0].map(norm_);
     return h.indexOf('CODIGO DE EQUIPO') >= 0;
   }) || ss.insertSheet(HOJA_DATOS);
