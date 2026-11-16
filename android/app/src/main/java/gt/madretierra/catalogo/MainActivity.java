@@ -95,7 +95,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         web = new WebView(this);
-        web.setBackgroundColor(Color.parseColor("#04070d"));
+        web.setBackgroundColor(Color.parseColor("#f3f6f2"));
         setContentView(web);
 
         WebSettings s = web.getSettings();
@@ -124,9 +124,9 @@ public class MainActivity extends Activity {
             public void onReceivedError(WebView view, WebResourceRequest req, WebResourceError err) {
                 if (req.isForMainFrame()) {
                     view.loadDataWithBaseURL(null,
-                        "<html><body style='background:#04070d;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center'>"
-                        + "<div><h2>Sin conexión</h2><p style='color:#aeb4ba'>Revise su internet e intente de nuevo.</p>"
-                        + "<button onclick=\"location.href='" + URL_APP + "'\" style='background:#18a88f;color:#fff;border:0;border-radius:10px;padding:14px 26px;font-size:16px'>Reintentar</button></div></body></html>",
+                        "<html><body style='background:#2e7d32;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center'>"
+                        + "<div><h2>Sin conexión</h2><p style='color:#d6ecd7'>Revise su internet e intente de nuevo.</p>"
+                        + "<button onclick=\"location.href='" + URL_APP + "'\" style='background:#fff;color:#1f6b25;border:0;border-radius:20px;padding:14px 26px;font-size:16px'>Reintentar</button></div></body></html>",
                         "text/html", "utf-8", null);
                 }
             }
