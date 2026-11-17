@@ -56,7 +56,7 @@ function hojaDatos_() {
   if (sh) return sh;
   // si cambiaron el nombre, busca la pestaña que tenga "CODIGO DE EQUIPO" en el encabezado
   return ss.getSheets().find(s => {
-    if (['CATALOGO', 'USUARIOS', 'RESPALDO', 'ACTUALIZACIONES', 'INVENTARIO'].indexOf(s.getName()) >= 0 || /^BOQUILLAS/.test(s.getName())) return false;
+    if (['CATALOGO', 'USUARIOS', 'RESPALDO', 'ACTUALIZACIONES', 'INVENTARIO'].indexOf(s.getName()) >= 0 || /^(BOQUILLAS|TIPOS)/.test(s.getName())) return false;
     const h = s.getRange(1, 1, 1, Math.max(1, s.getLastColumn())).getValues()[0].map(norm_);
     return h.indexOf('CODIGO DE EQUIPO') >= 0;
   }) || ss.insertSheet(HOJA_DATOS);
@@ -153,6 +153,7 @@ function doPost(e) {
       case 'boquillaBorrar': return json_(conSesion_(p.token, true, u => borrarBoquilla_(u, p)));
       case 'movimiento':     return json_(conSesion_(p.token, true, u => guardarMovimiento_(u, p)));
       case 'movimientoBorrar': return json_(conSesion_(p.token, true, u => borrarMovimiento_(u, p)));
+      case 'tipoFoto':  return json_(conSesion_(p.token, true, u => guardarTipo_(u, p)));
       case 'logout':    PropertiesService.getScriptProperties().deleteProperty('tok_' + p.token); return json_({ ok: true });
       default:          return json_({ ok: false, error: 'Acción desconocida.' });
     }
@@ -269,6 +270,7 @@ function datos_(u) {
   return {
     boquillas: leerBoquillas_(),
     inventario: leerInventario_(),
+    tipos: leerTipos_(),
     actualizaciones: actualizaciones,
     ok: true,
     usuario: { usuario: u.usuario, nombre: u.nombre, rol: u.rol },
@@ -502,6 +504,54 @@ function borrarMovimiento_(u, p) {
       for (let i = 0; i < ids.length; i++) if (String(ids[i][0]).trim() === id) { sh.deleteRow(i + 2); return { ok: true }; }
     }
     return { ok: false, error: 'No encontré ese movimiento.' };
+  } finally { lock.releaseLock(); }
+}
+
+/* ============================== fotos de referencia por tipo de boquilla ============================== */
+const TIPO_COLS = ['TIPO', 'COMPONENTE', 'FOTO', 'DESCRIPCION', 'ACTUALIZADO POR', 'FECHA ACTUALIZACION'];
+
+function hojaTipos_() {
+  const ss = ss_();
+  let sh = ss.getSheetByName('TIPOS BOQUILLA');
+  if (!sh) { sh = ss.insertSheet('TIPOS BOQUILLA'); sh.getRange(1, 1, 1, TIPO_COLS.length).setValues([TIPO_COLS]).setFontWeight('bold'); sh.setFrozenRows(1); }
+  return sh;
+}
+
+function leerTipos_() {
+  const sh = ss_().getSheetByName('TIPOS BOQUILLA');
+  if (!sh || sh.getLastRow() < 2) return [];
+  const m = mapa_(sh), v = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getValues();
+  const g = (r, c) => m[c] != null ? celda_(r[m[c]]) : '';
+  return v.filter(r => String(r[m['TIPO']]).trim()).map(r => ({ tipo: g(r, 'TIPO'), componente: g(r, 'COMPONENTE') || 'BOQUILLA', foto: g(r, 'FOTO'), descripcion: g(r, 'DESCRIPCION') }));
+}
+
+function guardarTipo_(u, p) {
+  const tipo = texto_(p.tipo, 80).toUpperCase(), comp = texto_(p.componente || 'BOQUILLA', 20).toUpperCase();
+  if (!tipo) return { ok: false, error: 'Falta el tipo.' };
+  const sh = hojaTipos_();
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    const m = mapa_(sh);
+    let fila = 0;
+    if (sh.getLastRow() > 1) {
+      const v = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getValues();
+      for (let i = 0; i < v.length; i++) if (norm_(v[i][m['TIPO']]) === norm_(tipo) && (norm_(v[i][m['COMPONENTE']]) || 'BOQUILLA') === comp) { fila = i + 2; break; }
+    }
+    if (!fila) { fila = sh.getLastRow() + 1; sh.getRange(fila, m['TIPO'] + 1).setNumberFormat('@').setValue(tipo); sh.getRange(fila, m['COMPONENTE'] + 1).setValue(comp); }
+    let foto = '';
+    const b64 = String(p.base64 || '').replace(/^data:[^,]+,/, '');
+    if (b64) {
+      const raiz = carpetaRaiz_(), it = raiz.getFoldersByName('TIPOS DE BOQUILLA');
+      const carpeta = it.hasNext() ? it.next() : raiz.createFolder('TIPOS DE BOQUILLA');
+      const f = carpeta.createFile(Utilities.newBlob(Utilities.base64Decode(b64), 'image/jpeg', comp + '_' + tipo.replace(/[^A-Za-z0-9]+/g, '-') + '_' + Utilities.formatDate(new Date(), TZ, 'yyyyMMdd_HHmmss') + '.jpg'));
+      try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
+      foto = f.getId();
+      sh.getRange(fila, m['FOTO'] + 1).setValue(foto);
+    }
+    if (p.descripcion != null) sh.getRange(fila, m['DESCRIPCION'] + 1).setValue(texto_(p.descripcion, 300));
+    sh.getRange(fila, m['ACTUALIZADO POR'] + 1).setValue(u.nombre);
+    sh.getRange(fila, m['FECHA ACTUALIZACION'] + 1).setValue(ahora_());
+    return { ok: true, foto: foto };
   } finally { lock.releaseLock(); }
 }
 

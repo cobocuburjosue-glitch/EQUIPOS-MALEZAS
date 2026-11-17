@@ -467,8 +467,18 @@ dialog{box-shadow:0 20px 50px rgba(0,0,0,.25);border-radius:28px}
 
 /* inventario */
 .inv-en-eq{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13.5px;background:var(--accent-soft);border-radius:18px;padding:8px 12px}
-.inv-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.inv-card{background:var(--ok-soft);border-radius:20px;padding:12px 14px;display:grid;gap:2px}
+.inv-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+@media (max-width:600px){.inv-cards{grid-template-columns:1fr 1fr;gap:8px}.inv-card .acciones-foto .btn{padding:0 6px;font-size:12px}}
+.inv-card{background:var(--ok-soft);border-radius:20px;padding:10px 12px 12px;display:grid;gap:2px;align-content:start}
+.inv-card.cero{background:var(--paper)}
+.inv-card .tf{aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:#fff;display:grid;place-items:center;margin-bottom:6px;cursor:zoom-in;color:var(--suave);font-size:12px}
+.inv-card .tf span{display:grid;place-items:center;gap:4px}
+.inv-card .tf img{width:100%;height:100%;object-fit:contain;background:#fff}
+.inv-n{display:flex;gap:14px}
+.inv-n small{display:block;font-size:11px;color:var(--suave);font-weight:800}
+.inv-n .num2{font-size:22px;font-weight:900;color:var(--oro);line-height:1.1}
+.mv-tf{width:120px;height:90px;object-fit:contain;background:#fff;border-radius:12px;margin-top:6px;cursor:zoom-in;border:1px solid var(--linea)}
+.inv-cards .acciones-foto .btn{flex:1}
 .inv-card.neg{background:var(--bad-soft)}
 .inv-card b{font-size:15px;font-weight:900}
 .inv-card .num{font-size:30px;font-weight:900;color:var(--accent-dk);line-height:1.1;font-variant-numeric:tabular-nums}
@@ -480,9 +490,9 @@ table.inv-mov tr,table.inv-eq tr:not([data-eq]){cursor:default}
 .m-ENTRADA,.m-DEVOLUCION{background:var(--ok-soft);color:var(--campo)}
 .m-SALIDA{background:var(--warn-soft);color:var(--oro)}
 .m-BAJA{background:var(--bad-soft);color:var(--atraso)}
-.m-CONTEO-INICIAL{background:#e3eefa;color:#2b6cb0}
+.m-CONTEO-INICIAL,.m-CONTEO{background:#e3eefa;color:#2b6cb0}
 .mini-foto{border:0;background:none;cursor:pointer;font-size:15px;padding:0 2px}
-.seg-mov{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.seg-mov{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
 @media (max-width:600px){.seg-mov{grid-template-columns:1fr 1fr}}
 .mv-foto{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .mv-foto .bf{width:110px;height:110px;border-radius:16px;overflow:hidden;background:var(--field);display:grid;place-items:center;color:var(--suave);font-size:12px}
@@ -702,9 +712,11 @@ html[data-tema="oscuro"] .seg button.activo{color:#8fd694!important}
         <button class="btn prim solo-admin" type="button" id="btnMov">+ Registrar movimiento</button></div>
       <div class="filtros vidrio" id="filtroInv"></div>
       <div class="kpis" id="kpisInv"></div>
-      <section class="panel vidrio" style="margin-bottom:14px"><h2>En bodega</h2><div id="invBodega"></div></section>
+      <section class="panel vidrio" style="margin-bottom:14px"><h2>Tipos de boquilla y filtro <span class="nota der" style="font-weight:600">Toque la foto para verla en grande</span></h2><div id="invBodega"></div></section>
       <section class="panel vidrio" style="margin-bottom:14px"><h2>Total por tipo</h2><div id="invTipos"></div></section>
-      <section class="panel vidrio" style="margin-bottom:14px"><h2>En los equipos <span class="nota der" style="font-weight:600">Toque un equipo para abrirlo</span></h2><div id="invEquipos"></div></section>
+      <section class="panel vidrio" style="margin-bottom:14px"><h2>En los equipos <span class="nota der" style="font-weight:600">Toque un equipo para abrirlo</span></h2>
+        <div class="solo-admin" style="margin-bottom:10px"><button class="btn" type="button" data-inv-add="">+ Agregar boquillas a un equipo</button></div>
+        <div id="invEquipos"></div></section>
       <section class="panel vidrio"><h2>Movimientos</h2><div id="invMovs"></div></section>
     </section>
 
@@ -1174,9 +1186,11 @@ function pintarInicio(){
 
 /* ---------- actualizaciones ---------- */
 /* ---------- inventario de boquillas ---------- */
-const MOVS = { ENTRADA:['Entrada a bodega','Guardar en bodega: compra, sobrante o stock encontrado'], SALIDA:['Salida a equipo','Sacar de bodega y entregarlo a un equipo'], DEVOLUCION:['Devolución a bodega','Regresa de un equipo a la bodega'], BAJA:['Baja','Dañada, gastada o perdida: sale del inventario'] };
+const MOVS = { CONTEO:['Agregar a equipo','Boquillas que ya tiene el equipo (se cuentan en el equipo, no salen de bodega)'], ENTRADA:['Entrada a bodega','Guardar en bodega: compra, sobrante o stock encontrado'], SALIDA:['Salida a equipo','Sacar de bodega y entregarlo a un equipo'], DEVOLUCION:['Devolución a bodega','Regresa de un equipo a la bodega'], BAJA:['Baja','Dañada, gastada o perdida: sale del inventario'] };
 const nomLugar = l => l === 'BODEGA' ? 'Bodega' : l || '—';
 const descEq = c => { const e = S.equipos.find(x => x.codigo === c); return e ? e.desc : ''; };
+const tipoReg = (comp, tipo) => (S.tipos || []).find(t => norm(t.tipo) === norm(tipo) && (t.componente || 'BOQUILLA') === comp);
+const fotoTipo = (comp, tipo) => S.fotosLocales['tipo|' + comp + '|' + norm(tipo)] || ((tipoReg(comp, tipo) || {}).foto ? fotoUrl(tipoReg(comp, tipo).foto, 600) : '');
 /** stock[lugar][comp|tipo] = cantidad  (suma en HACIA, resta en DESDE) */
 function stockInv(){
   const st = {};
@@ -1202,34 +1216,60 @@ function pintarInventario(){
   const k = (t, n, sub, c) => `<div class="kpi vidrio" style="--c:${c};cursor:default"><small>${t}</small><b>${n}</b><span>${sub}</span></div>`;
   $('#kpisInv').innerHTML = k('En bodega', sum(bod), 'Disponible para entregar', 'var(--campo)') + k('En los equipos', enEq, `${conEq.length} equipo${conEq.length===1?'':'s'} con conteo`, 'var(--taller)') +
     k('Total', sum(bod) + enEq, 'Bodega + equipos', 'var(--aqua)') + k('Tipos', tipos.length, f.comp ? compTxt(f.comp, true).toLowerCase() : 'boquillas y filtros', 'var(--aqua)');
-  const bodT = tipos.filter(t => bod[t]).sort((a, b) => bod[b] - bod[a]);
   const tipoTxt = t => { const [c, n] = t.split('|'); return { c, n }; };
-  $('#invBodega').innerHTML = bodT.length ? `<div class="inv-cards">${bodT.map(t => { const { c, n } = tipoTxt(t); return `<div class="inv-card ${bod[t] < 0 ? 'neg' : ''}"><span class="comp-et">${compTxt(c)}</span><b>${esc(n)}</b><span class="num">${bod[t]}</span></div>`; }).join('')}</div>` : '<p class="nota">No hay nada en bodega.</p>';
+  // todos los tipos conocidos: inventario + boquillas asignadas + fotos de referencia + lista base
+  const conocidos = new Set(tipos);
+  (S.tipos || []).forEach(t => conocidos.add((t.componente || 'BOQUILLA') + '|' + t.tipo));
+  const todosT = [...conocidos].filter(ok);
+  const enEqT = t => lugares.reduce((a, l) => a + ((st[l] || {})[t] || 0), 0);
+  const ordenT = todosT.sort((a, b) => (bod[b] || 0) - (bod[a] || 0) || enEqT(b) - enEqT(a) || a.localeCompare(b));
+  $('#invBodega').innerHTML = ordenT.length ? `<div class="inv-cards">${ordenT.map(t => { const { c, n } = tipoTxt(t), f = fotoTipo(c, n), b = bod[t] || 0;
+    return `<div class="inv-card ${b < 0 ? 'neg' : b === 0 ? 'cero' : ''}">
+      <div class="tf" ${f ? `data-verfoto="${esc(f.replace(/sz=w\d+/, 'sz=w1600'))}"` : ''}>${f ? `<img src="${esc(f)}" alt="Foto de ${esc(n)}" loading="lazy">` : `<span>${SVG_CAM.replace('<svg','<svg width="26" height="26"')}Sin foto</span>`}</div>
+      <span class="comp-et">${compTxt(c)}</span><b>${esc(n)}</b>
+      <div class="inv-n"><span><small>Bodega</small><span class="num">${b}</span></span><span><small>Equipos</small><span class="num2">${enEqT(t)}</span></span></div>
+      <div class="acciones-foto solo-admin" style="margin:4px 0 0"><button type="button" class="btn peq" data-tipo-foto="${esc(t)}" data-modo="camara">${SVG_CAM.replace('stroke-width="1.6"','stroke-width="2"')}</button><button type="button" class="btn peq" data-tipo-foto="${esc(t)}" data-modo="galeria">Subir foto</button></div>
+    </div>`; }).join('')}</div>` : '<p class="nota">No hay tipos registrados.</p>';
   $('#invTipos').innerHTML = tipos.length ? `<div class="tabla-wrap"><table class="t"><thead><tr><th>Tipo</th><th>Componente</th><th class="num">Bodega</th><th class="num">En equipos</th><th class="num">Total</th></tr></thead><tbody>
     ${tipos.map(t => { const { c, n } = tipoTxt(t); const e = lugares.reduce((a, l) => a + ((st[l] || {})[t] || 0), 0); return `<tr><td><b>${esc(n)}</b></td><td>${compTxt(c)}</td><td class="num">${bod[t] || 0}</td><td class="num">${e}</td><td class="num"><b>${(bod[t] || 0) + e}</b></td></tr>`; }).join('')}</tbody></table></div>` : '<p class="nota">Sin datos.</p>';
   const tiposEq = tipos.filter(t => conEq.some(l => st[l][t]));
-  $('#invEquipos').innerHTML = conEq.length ? `<div class="tabla-wrap"><table class="t inv-eq"><thead><tr><th>Equipo</th><th>Zona</th>${tiposEq.map(t => `<th class="num">${esc(tipoTxt(t).n)}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>
-    ${conEq.sort((a, b) => a.localeCompare(b, 'es', {numeric:true})).map(l => { const e = S.equipos.find(x => x.codigo === l); return `<tr ${e ? `data-eq="${esc(l)}"` : ''}><td><b>${esc(l)}</b><small>${esc(descEq(l))}</small></td><td>${esc(e ? e.zona : '')}</td>${tiposEq.map(t => `<td class="num">${st[l][t] || '·'}</td>`).join('')}<td class="num"><b>${sum(st[l])}</b></td></tr>`; }).join('')}</tbody></table></div>` : '<p class="nota">No hay boquillas contadas en equipos.</p>';
+  $('#invEquipos').innerHTML = conEq.length ? `<div class="tabla-wrap"><table class="t inv-eq"><thead><tr><th>Equipo</th><th>Zona</th>${tiposEq.map(t => `<th class="num">${esc(tipoTxt(t).n)}</th>`).join('')}<th class="num">Total</th><th class="solo-admin"></th></tr></thead><tbody>
+    ${conEq.sort((a, b) => a.localeCompare(b, 'es', {numeric:true})).map(l => { const e = S.equipos.find(x => x.codigo === l); return `<tr ${e ? `data-eq="${esc(l)}"` : ''}><td><b>${esc(l)}</b><small>${esc(descEq(l))}</small></td><td>${esc(e ? e.zona : '')}</td>${tiposEq.map(t => `<td class="num">${st[l][t] || '·'}</td>`).join('')}<td class="num"><b>${sum(st[l])}</b></td><td class="solo-admin"><button type="button" class="ed" data-inv-add="${esc(l)}" aria-label="Agregar a ${esc(l)}">+</button></td></tr>`; }).join('')}</tbody></table></div>` : '<p class="nota">No hay boquillas contadas en equipos.</p>';
   const M = [...(S.inventario || [])].filter(m => !f.comp || (m.componente || 'BOQUILLA') === f.comp).reverse();
-  const etq = m => ({ 'CONTEO INICIAL':'Conteo inicial', ENTRADA:'Entrada', SALIDA:'Salida a equipo', DEVOLUCION:'Devolución', BAJA:'Baja' }[m.movimiento] || bonito(m.movimiento));
+  const etq = m => ({ 'CONTEO INICIAL':'Conteo inicial', CONTEO:'Agregado a equipo', ENTRADA:'Entrada', SALIDA:'Salida a equipo', DEVOLUCION:'Devolución', BAJA:'Baja' }[m.movimiento] || bonito(m.movimiento));
   $('#invMovs').innerHTML = M.length ? `<div class="tabla-wrap"><table class="t inv-mov"><thead><tr><th>Fecha</th><th>Movimiento</th><th>Tipo</th><th class="num">Cant.</th><th>De → A</th><th>Detalle</th><th>Registró</th>${esAdmin() ? '<th></th>' : ''}</tr></thead><tbody>
     ${M.map(m => `<tr><td>${esc(m.fecha)}</td><td><span class="mov m-${esc(m.movimiento.replace(/\s+/g,'-'))}">${etq(m)}</span></td><td><b>${esc(m.tipo)}</b>${m.foto ? ` <button type="button" class="mini-foto" data-verfoto="${esc(fotoUrl(m.foto, 1600))}" aria-label="Ver foto">📷</button>` : ''}</td><td class="num"><b>${esc(m.cantidad)}</b></td><td>${esc(m.desde ? nomLugar(m.desde) : '')}${m.desde || m.hacia ? ' → ' : ''}${esc(m.hacia ? nomLugar(m.hacia) : (m.movimiento === 'BAJA' ? 'Fuera' : ''))}</td><td class="obs">${esc(m.detalle)}</td><td>${esc(m.por)}</td>${esAdmin() ? `<td><button type="button" class="ed" data-mov-borrar="${esc(m.id)}" aria-label="Borrar movimiento">🗑</button></td>` : ''}</tr>`).join('')}</tbody></table></div>` : '<p class="nota">Sin movimientos.</p>';
 }
+let tipoFotoPend = null;
+async function subirFotoTipo(file){
+  const [comp, tipo] = tipoFotoPend.split('|');
+  try {
+    velo('Subiendo foto del tipo…');
+    const data = await comprimir(file);
+    await api('tipoFoto', { tipo, componente: comp, base64: data });
+    S.fotosLocales['tipo|' + comp + '|' + norm(tipo)] = data;
+    const r = tipoReg(comp, tipo); if (r) r.foto = r.foto || 'local'; else (S.tipos = S.tipos || []).push({ tipo, componente: comp, foto: 'local' });
+    toast('Foto guardada para ' + tipo + '.'); pintarInventario();
+  } catch(err){ toast(err.message, 5000); }
+  finally { velo(); tipoFotoPend = null; }
+}
 let movFoto = null;
-function formMovimiento(){
+function formMovimiento(opts){
+  opts = opts && opts.mv ? opts : {};
   movFoto = null;
   const eqs = [...S.equipos].sort((a, b) => a.codigo.localeCompare(b.codigo, 'es', {numeric:true}));
   const opEq = `<option value="">Elija el equipo</option>${eqs.map(e => `<option value="${esc(e.codigo)}">${esc(e.codigo)} · ${esc(e.desc)}</option>`).join('')}`;
   $('#mCuerpo').innerHTML = `
-    <div><label>Movimiento</label><div class="seg seg-mov" id="mvTipo">${Object.entries(MOVS).map(([k, [t]], i) => `<button type="button" data-mv="${k}" class="${i === 0 ? 'activo' : ''}">${t}</button>`).join('')}</div><p class="nota" id="mvAyuda" style="margin-top:6px"></p></div>
+    <div><label>Movimiento</label><div class="seg seg-mov" id="mvTipo">${Object.entries(MOVS).map(([k, [t]]) => `<button type="button" data-mv="${k}" class="${k === (opts.mv || 'ENTRADA') ? 'activo' : ''}">${t}</button>`).join('')}</div><p class="nota" id="mvAyuda" style="margin-top:6px"></p></div>
     <div><label>Qué es</label><div class="seg" id="mvComp"><button type="button" data-mc="BOQUILLA" class="activo">Boquilla</button><button type="button" data-mc="FILTRO">Filtro</button></div></div>
-    <div class="ubic"><div><label for="mvT">Tipo *</label><div id="mvTCaja"></div><p class="nota" id="mvStock" style="margin-top:6px"></p></div>
+    <div class="ubic"><div><label for="mvT">Tipo *</label><div id="mvTCaja"></div><p class="nota" id="mvStock" style="margin-top:6px"></p><div id="mvTipoFoto"></div></div>
       <div><label for="mvCant">Cantidad *</label><input type="number" id="mvCant" min="1" step="1" inputmode="numeric"></div></div>
     <div id="mvEqCaja"><label for="mvEq" id="mvEqLbl">Equipo</label><select id="mvEq">${opEq}</select></div>
     <div id="mvBajaCaja" class="oculto"><label for="mvDesde">Sale de</label><select id="mvDesde"><option value="BODEGA">Bodega</option>${eqs.map(e => `<option value="${esc(e.codigo)}">${esc(e.codigo)} · ${esc(e.desc)}</option>`).join('')}</select></div>
     <div><label for="mvDet">Detalle</label><input type="text" id="mvDet" placeholder="Ej. compra de noviembre, sobrante del 2025, se quebró…"></div>
     <div><label>Foto (opcional)</label><div class="mv-foto"><div class="bf" id="mvPrev"><span>Sin foto</span></div><div class="acciones-foto" style="margin:0"><button type="button" class="btn peq" id="mvCam">${SVG_CAM.replace('stroke-width="1.6"','stroke-width="2"')}Tomar foto</button><button type="button" class="btn peq" id="mvGal">Subir foto</button></div></div></div>`;
-  let mv = 'ENTRADA', comp = 'BOQUILLA';
+  let mv = opts.mv || 'ENTRADA', comp = 'BOQUILLA';
+  if (opts.eq) $('#mvEq').value = opts.eq;
   const st = stockInv();
   const pintaTipo = () => {
     const ya = [...new Set((S.inventario || []).filter(m => (m.componente || 'BOQUILLA') === comp).map(m => m.tipo))];
@@ -1240,14 +1280,16 @@ function formMovimiento(){
   };
   const pintaStock = () => {
     const t = valSel('mvT').toUpperCase(), k = comp + '|' + t;
-    const lugar = mv === 'DEVOLUCION' ? $('#mvEq').value : mv === 'BAJA' ? $('#mvDesde').value : 'BODEGA';
+    const lugar = mv === 'DEVOLUCION' || mv === 'CONTEO' ? $('#mvEq').value : mv === 'BAJA' ? $('#mvDesde').value : 'BODEGA';
     $('#mvStock').textContent = t ? `En ${nomLugar(lugar) === '—' ? 'ese equipo' : nomLugar(lugar)} hay ${((st[lugar] || {})[k]) || 0}.` : '';
+    const ft = t ? fotoTipo(comp, t) : '';
+    $('#mvTipoFoto').innerHTML = ft ? `<img class="mv-tf" src="${esc(ft)}" alt="Foto de ${esc(t)}" data-verfoto="${esc(ft.replace(/sz=w\d+/, 'sz=w1600'))}">` : '';
   };
   const pintaMv = () => {
     $('#mvAyuda').textContent = MOVS[mv][1];
     $('#mvEqCaja').classList.toggle('oculto', mv === 'ENTRADA' || mv === 'BAJA');
     $('#mvBajaCaja').classList.toggle('oculto', mv !== 'BAJA');
-    $('#mvEqLbl').textContent = mv === 'SALIDA' ? 'Se entrega al equipo *' : 'Regresa del equipo *';
+    $('#mvEqLbl').textContent = mv === 'SALIDA' ? 'Se entrega al equipo *' : mv === 'CONTEO' ? 'Equipo *' : 'Regresa del equipo *';
     pintaStock();
   };
   $('#mvTipo').onclick = ev => { const b = ev.target.closest('[data-mv]'); if (!b) return; mv = b.dataset.mv; $$('#mvTipo button').forEach(x => x.classList.toggle('activo', x === b)); pintaMv(); };
@@ -1263,9 +1305,9 @@ async function guardarMovimiento(mv, comp, st){
   const tipo = valSel('mvT').toUpperCase().trim(), cant = parseInt($('#mvCant').value, 10), eq = $('#mvEq').value;
   if (!tipo) return toast('Elija el tipo.');
   if (!(cant > 0)) return toast('Escriba la cantidad.');
-  if ((mv === 'SALIDA' || mv === 'DEVOLUCION') && !eq) return toast('Elija el equipo.');
-  const desde = mv === 'ENTRADA' ? '' : mv === 'SALIDA' ? 'BODEGA' : mv === 'DEVOLUCION' ? eq : $('#mvDesde').value;
-  const hacia = mv === 'ENTRADA' ? 'BODEGA' : mv === 'SALIDA' ? eq : mv === 'DEVOLUCION' ? 'BODEGA' : '';
+  if ((mv === 'SALIDA' || mv === 'DEVOLUCION' || mv === 'CONTEO') && !eq) return toast('Elija el equipo.');
+  const desde = mv === 'ENTRADA' || mv === 'CONTEO' ? '' : mv === 'SALIDA' ? 'BODEGA' : mv === 'DEVOLUCION' ? eq : $('#mvDesde').value;
+  const hacia = mv === 'ENTRADA' ? 'BODEGA' : mv === 'CONTEO' ? eq : mv === 'SALIDA' ? eq : mv === 'DEVOLUCION' ? 'BODEGA' : '';
   const hay = desde ? ((st[desde] || {})[comp + '|' + tipo] || 0) : Infinity;
   if (cant > hay && !confirm(`En ${nomLugar(desde)} solo hay ${hay} de ${tipo}. ¿Registrar de todos modos?`)) return;
   const b = $('#btnGuardarMov'); b.disabled = true; b.textContent = movFoto ? 'Subiendo foto…' : 'Guardando…';
@@ -1274,6 +1316,7 @@ async function guardarMovimiento(mv, comp, st){
     const r = await api('movimiento', { datos, base64: movFoto || '' });
     (S.inventario = S.inventario || []).push(Object.assign({ id: r.id, fecha: r.fecha, foto: r.foto || '', por: S.ses.usuario.nombre }, datos, { cantidad: String(cant) }));
     movFoto = null; guardarCache(); $('#dlgMov').close(); toast('Movimiento guardado.'); pintarInventario();
+    if ($('#dlgEquipo').open && S.actual) pintarInvEquipo(S.actual.codigo);
   } catch(err){ toast(err.message, 5000); }
   finally { b.disabled = false; b.textContent = 'Guardar'; }
 }
@@ -1365,8 +1408,7 @@ function abrirEquipo(cod){
     (e.cumpTaller ? D('Cumplimiento taller', esc(e.cumpTaller)) : '') + (e.cumpUsuario ? D('Cumplimiento usuario', esc(e.cumpUsuario)) : '') + (e.obsHoja ? D('Observación (Excel)', esc(e.obsHoja)) : '');
 
   pintarBoquillas();
-  const sti = (stockInv()[cod]) || {}, ki = Object.entries(sti).filter(([, n]) => n);
-  $('#dInv').innerHTML = ki.length ? `<div class="inv-en-eq"><b>Según el inventario:</b> ${ki.map(([k, n]) => `<span class="tag">${esc(k.split('|')[1])} · <b>${n}</b></span>`).join(' ')}</div>` : '';
+  pintarInvEquipo(cod);
   $('#boqForm').classList.add('oculto');
   $('#dUbic').value = c.UBICACION || ''; $('#dUbic').readOnly = !admin;
   ponerGps(c.LATITUD, c.LONGITUD);
@@ -1496,6 +1538,11 @@ async function borrarBoquilla(id){
   } catch(err){ toast(err.message, 5000); }
 }
 
+function pintarInvEquipo(cod){
+  const sti = (stockInv()[cod]) || {}, ki = Object.entries(sti).filter(([, n]) => n);
+  $('#dInv').innerHTML = (ki.length ? `<div class="inv-en-eq"><b>Según el inventario:</b> ${ki.map(([k, n]) => `<span class="tag">${esc(k.split('|')[1])} · <b>${n}</b></span>`).join(' ')}</div>` : '')
+    + (esAdmin() && S.inventario !== undefined ? `<div style="margin-top:8px"><button type="button" class="btn peq" data-inv-add="${esc(cod)}">+ Agregar al inventario de este equipo</button></div>` : '');
+}
 function pintarFotoGrande(){
   const e = S.actual, f = fotoDe(e.codigo);
   $('#dFoto').innerHTML = f ? `<img src="${esc(f.replace(/sz=w\d+/, 'sz=w1600'))}" alt="Foto del equipo ${esc(e.codigo)}">` : `<div class="sinfoto" style="display:grid;place-items:center;gap:8px;color:var(--tenue)">${SVG_CAM.replace('<svg','<svg width="44" height="44"')}${esAdmin() ? 'Tome o suba una foto para reconocer el equipo' : 'Este equipo aún no tiene foto'}</div>`;
@@ -1555,10 +1602,11 @@ function comprimir(file, max=1600, q=.82){
 function verFoto(src){
   const v = document.createElement('div'); v.className = 'visor'; v.setAttribute('role','dialog'); v.setAttribute('aria-label','Foto');
   v.innerHTML = `<img src="${esc(src)}" alt="Foto del equipo"><button type="button" aria-label="Cerrar">×</button>`;
-  (document.querySelector('dialog[open]') || document.body).appendChild(v);   // dentro del diálogo abierto, para que quede encima
+  ([...document.querySelectorAll('dialog[open]')].pop() || document.body).appendChild(v);   // dentro del diálogo abierto, para que quede encima
 }
 async function alElegirFoto(ev){
-  const file = ev.target.files && ev.target.files[0]; if (!file || !fotoPend || (!S.actual && fotoPend !== 'INVFORM')) return;
+  const file = ev.target.files && ev.target.files[0]; if (!file || !fotoPend || (!S.actual && fotoPend !== 'INVFORM' && fotoPend !== 'TIPO')) return;
+  if (fotoPend === 'TIPO') { await subirFotoTipo(file); return; }
   if (fotoPend === 'INVFORM') {
     try { movFoto = await comprimir(file); $('#mvPrev').innerHTML = `<img src="${movFoto}" alt="Foto">`; } catch(err){ toast(err.message); }
     return;
@@ -1837,12 +1885,13 @@ async function generarPdf(){
    SESIÓN Y DATOS
    =================================================================== */
 const esAdmin = () => S.ses?.usuario?.rol === 'ADMINISTRADOR';
-function guardarCache(){ guardar('cat_datos', { encabezados:S.encabezados, filas:S._filas, catalogo:S.catalogo, ultimaCarga:S.ultimaCarga, actualizaciones:S.actualizaciones, boquillas:S.boquillas, inventario:S.inventario, t:Date.now() }); }
+function guardarCache(){ guardar('cat_datos', { encabezados:S.encabezados, filas:S._filas, catalogo:S.catalogo, ultimaCarga:S.ultimaCarga, actualizaciones:S.actualizaciones, boquillas:S.boquillas, inventario:S.inventario, tipos:S.tipos, t:Date.now() }); }
 function usarDatos(d){
   S.encabezados = d.encabezados || []; S._filas = d.filas || []; S.catalogo = d.catalogo || {}; S.ultimaCarga = d.ultimaCarga || '';
   S.actualizaciones = d.actualizaciones || [];
   S.boquillas = d.boquillas;   // undefined = el Apps Script aún no tiene la pestaña BOQUILLAS
   S.inventario = d.inventario; // undefined = el Apps Script aún no tiene la pestaña INVENTARIO
+  S.tipos = d.tipos || [];
   S.equipos = construir(S.encabezados, S._filas);
   marcarCambios();
 }
@@ -1901,6 +1950,8 @@ $('#formLogin').addEventListener('submit', async ev => {
 
 document.addEventListener('click', ev => {
   const t = ev.target;
+  const ia = t.closest('[data-inv-add]'); if (ia){ formMovimiento({ mv:'CONTEO', eq: ia.dataset.invAdd }); return; }
+  const tf = t.closest('[data-tipo-foto]'); if (tf){ tipoFotoPend = tf.dataset.tipoFoto; fotoPend = 'TIPO'; const i = tf.dataset.modo === 'camara' ? $('#fotoCamara') : $('#fotoGaleria'); i.value = ''; i.click(); return; }
   const irA = t.closest('[data-ir]');
   if (irA){
     const v = irA.dataset.ir;
@@ -1932,7 +1983,7 @@ $$('dialog').forEach(d => d.addEventListener('click', ev => { if (ev.target === 
 $('#btnGuardarEq').onclick = guardarEquipo;
 $('#btnGps').onclick = usarGps;
 $('#btnBoqNueva').onclick = () => formBoquilla('');
-$('#btnMov').onclick = formMovimiento;
+$('#btnMov').onclick = () => formMovimiento();
 $('#fotoCamara').onchange = alElegirFoto;
 $('#fotoGaleria').onchange = alElegirFoto;
 $('#btnExcel').onclick = () => $('#archivoExcel').click();
