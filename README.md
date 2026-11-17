@@ -23,6 +23,7 @@ Los datos están en la hoja de Google Sheets **EQUIPOS TALLER MALEZAS**. Todo vi
 | `CATALOGO` | Lo que se llena desde la app: descripción, fotos (ID de Drive), boquillas, bajantes, filtros, GPS, observaciones. Una carga de Excel **no** la toca. |
 | `BOQUILLAS` | Solo las boquillas que se asignan a mano desde la app (botón **+ Agregar boquilla** en la ficha del equipo): tipo, cantidad total, filtros, tipo de control, equipo, mes y foto. |
 | `BOQUILLAS EXCEL (referencia)` | El Excel de boquillas original, solo como consulta. La app no lo muestra; de ahí salen las listas de tipos de boquilla y tipos de control. |
+| `INVENTARIO` | Inventario de boquillas y filtros: cada fila es un movimiento (conteo inicial, entrada a bodega, salida a equipo, devolución, baja). Suma en HACIA y resta en DESDE (BODEGA o un código de equipo). Se registra desde la pestaña **Inventario** de la app. |
 | `USUARIOS` | `USUARIO · CONTRASEÑA · ROL · NOMBRE`. ROL `ADMINISTRADOR` edita todo; `PUBLICO` solo consulta y genera reportes. |
 
 ## 1. Apps Script (una sola vez)

@@ -56,7 +56,7 @@ function hojaDatos_() {
   if (sh) return sh;
   // si cambiaron el nombre, busca la pestaña que tenga "CODIGO DE EQUIPO" en el encabezado
   return ss.getSheets().find(s => {
-    if (['CATALOGO', 'USUARIOS', 'RESPALDO', 'ACTUALIZACIONES'].indexOf(s.getName()) >= 0 || /^BOQUILLAS/.test(s.getName())) return false;
+    if (['CATALOGO', 'USUARIOS', 'RESPALDO', 'ACTUALIZACIONES', 'INVENTARIO'].indexOf(s.getName()) >= 0 || /^BOQUILLAS/.test(s.getName())) return false;
     const h = s.getRange(1, 1, 1, Math.max(1, s.getLastColumn())).getValues()[0].map(norm_);
     return h.indexOf('CODIGO DE EQUIPO') >= 0;
   }) || ss.insertSheet(HOJA_DATOS);
@@ -151,6 +151,8 @@ function doPost(e) {
       case 'excel':     return json_(conSesion_(p.token, true, u => cargarExcel_(u, p)));
       case 'boquilla':  return json_(conSesion_(p.token, true, u => guardarBoquilla_(u, p)));
       case 'boquillaBorrar': return json_(conSesion_(p.token, true, u => borrarBoquilla_(u, p)));
+      case 'movimiento':     return json_(conSesion_(p.token, true, u => guardarMovimiento_(u, p)));
+      case 'movimientoBorrar': return json_(conSesion_(p.token, true, u => borrarMovimiento_(u, p)));
       case 'logout':    PropertiesService.getScriptProperties().deleteProperty('tok_' + p.token); return json_({ ok: true });
       default:          return json_({ ok: false, error: 'Acción desconocida.' });
     }
@@ -266,6 +268,7 @@ function datos_(u) {
   const props = PropertiesService.getScriptProperties();
   return {
     boquillas: leerBoquillas_(),
+    inventario: leerInventario_(),
     actualizaciones: actualizaciones,
     ok: true,
     usuario: { usuario: u.usuario, nombre: u.nombre, rol: u.rol },
@@ -433,6 +436,72 @@ function borrarBoquilla_(u, p) {
       for (let i = 0; i < ids.length; i++) if (String(ids[i][0]).trim() === id) { sh.deleteRow(i + 2); return { ok: true }; }
     }
     return { ok: false, error: 'No encontré esa boquilla.' };
+  } finally { lock.releaseLock(); }
+}
+
+/* ============================== inventario de boquillas ============================== */
+// Cada fila es un movimiento: suma en HACIA y resta en DESDE (BODEGA o un código de equipo).
+const INV_COLS = ['ID', 'FECHA', 'MOVIMIENTO', 'COMPONENTE', 'TIPO', 'CANTIDAD', 'DESDE', 'HACIA', 'DETALLE', 'REGISTRADO POR', 'FOTO'];
+
+function hojaInventario_() {
+  const ss = ss_();
+  let sh = ss.getSheetByName('INVENTARIO');
+  if (!sh) { sh = ss.insertSheet('INVENTARIO'); sh.getRange(1, 1, 1, INV_COLS.length).setValues([INV_COLS]).setFontWeight('bold'); sh.setFrozenRows(1); }
+  return sh;
+}
+
+function leerInventario_() {
+  const sh = ss_().getSheetByName('INVENTARIO');
+  if (!sh || sh.getLastRow() < 2) return [];
+  const m = mapa_(sh), v = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getValues();
+  const g = (r, c) => m[c] != null ? celda_(r[m[c]]) : '';
+  return v.filter(r => String(r[m['ID']]).trim()).map(r => ({
+    id: g(r, 'ID'), fecha: g(r, 'FECHA'), movimiento: g(r, 'MOVIMIENTO'), componente: g(r, 'COMPONENTE') || 'BOQUILLA', tipo: g(r, 'TIPO'),
+    cantidad: g(r, 'CANTIDAD'), desde: g(r, 'DESDE'), hacia: g(r, 'HACIA'), detalle: g(r, 'DETALLE'), por: g(r, 'REGISTRADO POR'), foto: g(r, 'FOTO')
+  }));
+}
+
+function guardarMovimiento_(u, p) {
+  const d = p.datos || {};
+  const mov = texto_(d.movimiento, 30).toUpperCase(), tipo = texto_(d.tipo, 80).toUpperCase(), cant = Number(d.cantidad);
+  if (!mov || !tipo) return { ok: false, error: 'Falta el movimiento o el tipo.' };
+  if (!(cant > 0)) return { ok: false, error: 'La cantidad debe ser mayor que cero.' };
+  const sh = hojaInventario_();
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    const m = mapa_(sh);
+    let max = 0;
+    if (sh.getLastRow() > 1) sh.getRange(2, m['ID'] + 1, sh.getLastRow() - 1, 1).getValues().forEach(r => { const n = parseInt(String(r[0]).replace(/\D/g, ''), 10); if (n > max) max = n; });
+    const id = 'M' + String(max + 1).padStart(3, '0');
+    let foto = '';
+    const b64 = String(p.base64 || '').replace(/^data:[^,]+,/, '');
+    if (b64) {
+      const raiz = carpetaRaiz_(), it = raiz.getFoldersByName('INVENTARIO');
+      const carpeta = it.hasNext() ? it.next() : raiz.createFolder('INVENTARIO');
+      const f = carpeta.createFile(Utilities.newBlob(Utilities.base64Decode(b64), 'image/jpeg', id + '_' + mov + '_' + tipo.replace(/[^A-Za-z0-9]+/g, '-') + '_' + Utilities.formatDate(new Date(), TZ, 'yyyyMMdd_HHmmss') + '.jpg'));
+      try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
+      foto = f.getId();
+    }
+    const fila = { 'ID': id, 'FECHA': Utilities.formatDate(new Date(), TZ, 'dd/MM/yyyy'), 'MOVIMIENTO': mov, 'COMPONENTE': texto_(d.componente || 'BOQUILLA', 20).toUpperCase(),
+      'TIPO': tipo, 'CANTIDAD': cant, 'DESDE': texto_(d.desde, 80), 'HACIA': texto_(d.hacia, 80), 'DETALLE': texto_(d.detalle, 300), 'REGISTRADO POR': u.nombre, 'FOTO': foto };
+    const n = sh.getLastColumn(), out = new Array(n).fill('');
+    Object.keys(fila).forEach(k => { if (m[k] != null) out[m[k]] = fila[k]; });
+    sh.getRange(sh.getLastRow() + 1, 1, 1, n).setValues([out]);
+    return { ok: true, id: id, fecha: fila['FECHA'], foto: foto };
+  } finally { lock.releaseLock(); }
+}
+
+function borrarMovimiento_(u, p) {
+  const id = texto_(p.id, 20); if (!id) return { ok: false, error: 'Falta el ID.' };
+  const sh = hojaInventario_();
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    const m = mapa_(sh);
+    if (sh.getLastRow() > 1) {
+      const ids = sh.getRange(2, m['ID'] + 1, sh.getLastRow() - 1, 1).getValues();
+      for (let i = 0; i < ids.length; i++) if (String(ids[i][0]).trim() === id) { sh.deleteRow(i + 2); return { ok: true }; }
+    }
+    return { ok: false, error: 'No encontré ese movimiento.' };
   } finally { lock.releaseLock(); }
 }
 
