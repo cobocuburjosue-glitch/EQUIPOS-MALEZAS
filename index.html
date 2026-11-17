@@ -9,32 +9,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#2e7d32">
-<script>/* MDE MT · modo día/noche compartido (clave mde_tema). Abre en oscuro (Neón al amanecer). */try{if(localStorage.getItem('mde_tema')!=='claro')document.documentElement.setAttribute('data-tema','oscuro')}catch(e){document.documentElement.setAttribute('data-tema','oscuro')}</script>
-<script>
-/* ===== MDE MT · escena de amanecer (cielo, sol, cañaveral y drone) ===== */
-window.amEscena = function(o){
-  o = o || {};
-  var id = 'am' + Math.random().toString(36).slice(2, 7), w = 620, h = 220, canas = '';
-  for (var x = 6; x < w + 20; x += 34){
-    var a = 38 + ((x * 7) % 17);
-    canas += '<path class="am-cana-v" style="animation-delay:' + ((x % 5) * .3) + 's" d="M' + x + ' 224 q -5 -' + a + ' 2 -' + (a + 30) + ' M' + x + ' ' + (224 - a * .9) + ' q 15 -12 27 -6 M' + (x + 2) + ' ' + (224 - a * 1.4) + ' q -15 -10 -26 -2" stroke="var(--am-cana)" stroke-width="4" fill="none" stroke-linecap="round"/>';
-  }
-  var est = '';
-  [[40,20],[120,36],[210,14],[300,28],[90,60],[250,50],[380,22],[160,84]].forEach(function(p){ est += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="1.2" fill="#fff" style="opacity:var(--am-estrella)"/>'; });
-  return '<svg class="am-escena" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><defs>'
-    + '<linearGradient id="' + id + 'c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--am-cielo1)"/><stop offset=".45" style="stop-color:var(--am-cielo2)"/><stop offset=".78" style="stop-color:var(--am-cielo3)"/><stop offset="1" style="stop-color:var(--am-cielo4)"/></linearGradient>'
-    + '<radialGradient id="' + id + 's"><stop offset="0" style="stop-color:var(--am-sol1)"/><stop offset=".5" style="stop-color:var(--am-sol2)"/><stop offset="1" style="stop-color:var(--am-sol2);stop-opacity:0"/></radialGradient></defs>'
-    + '<rect width="' + w + '" height="' + h + '" fill="url(#' + id + 'c)"/>' + est
-    + '<circle class="am-sol" cx="' + (o.solX || 470) + '" cy="168" r="72" fill="url(#' + id + 's)"/>'
-    + '<path d="M0 170 C 120 140, 240 160, 360 142 S 560 130, 620 146 L620 220 L0 220 Z" style="fill:var(--am-loma)"/>'
-    + '<path d="M0 196 C 160 176, 330 200, 620 178 L620 220 L0 220 Z" style="fill:var(--am-campo)"/>' + canas
-    + '<path d="M0 196 C 160 176, 330 200, 620 178" fill="none" style="stroke:var(--am-linea)" stroke-width="1.5" opacity=".75"/></svg>';
-};
-/* Drone volando con su aspersión. src: ruta de la imagen del drone sin fondo. */
-window.amDron = function(src, color){
-  return '<div class="am-dron am-vuela"><img src="' + src + '" alt=""><svg viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true"><polygon class="am-fan" points="50,0 16,60 84,60" fill="' + (color || 'var(--am-menta)') + '" fill-opacity=".32"/></svg></div>';
-};
-</script>
+<script>/* MDE MT · modo día/noche compartido por las apps (clave mde_tema) */try{if(localStorage.getItem('mde_tema')==='oscuro')document.documentElement.setAttribute('data-tema','oscuro')}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
@@ -621,88 +596,6 @@ html[data-tema="oscuro"] .seg button.activo{color:#8fd694!important}
 .login-caja form{position:relative;z-index:1}
 .tema-login{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.18);color:#fff;display:grid;place-items:center;cursor:pointer}
 .movil-top .btn.tema-top{width:34px;padding:0;display:grid;place-items:center}
-/* ===================== MDE MT · NEÓN AL AMANECER (común a las 4 apps) ===================== */
-:root{
-  --am-cielo1:#ffe9cf; --am-cielo2:#ffd2a6; --am-cielo3:#f6a877; --am-cielo4:#f08d63;
-  --am-sol1:#fff7dc; --am-sol2:#ffd27a; --am-loma:#e9b48f; --am-campo:#5d8f4f; --am-cana:#2f5a2c; --am-linea:#2e7d32;
-  --am-estrella:0; --am-menta:#2e7d32; --am-ambar:#c46a1c;
-}
-html[data-tema="oscuro"]{
-  --am-cielo1:#151027; --am-cielo2:#4a2440; --am-cielo3:#b85a38; --am-cielo4:#eea55a;
-  --am-sol1:#fff1c4; --am-sol2:#ffcf75; --am-loma:#33182a; --am-campo:#13241a; --am-cana:#0a1910; --am-linea:#34d89c;
-  --am-estrella:.7; --am-menta:#34d89c; --am-ambar:#ff9f5a;
-}
-html[data-tema="oscuro"] body{background-image:radial-gradient(1100px 520px at 88% -8%,rgba(255,159,90,.08),transparent 60%),radial-gradient(900px 460px at 6% 0%,rgba(52,216,156,.05),transparent 60%);background-attachment:fixed}
-.am-escena{position:absolute;inset:0;width:100%;height:100%;display:block}
-.am-dron{position:absolute;left:30%;top:6%;width:42%;max-width:270px;pointer-events:none}
-.am-dron img{display:block;width:100%;filter:drop-shadow(0 10px 14px rgba(0,0,0,.35))}
-.am-dron svg{display:block;width:46%;height:70px;margin:-10px auto 0}
-.am-eyebrow{color:var(--am-ambar);font-weight:800;letter-spacing:.04em;font-size:13px;text-transform:none}
-@media (prefers-reduced-motion: no-preference){
-  .am-vuela{animation:am-vuela 11s ease-in-out infinite alternate}
-  .am-sol{animation:am-sol 14s ease-in-out infinite alternate}
-  .am-fan{transform-box:fill-box;transform-origin:50% 0;animation:am-abrir 1.1s cubic-bezier(.2,.7,.2,1) backwards .3s}
-  .am-sube{animation:am-subir .55s cubic-bezier(.2,.7,.2,1) backwards}
-  .am-sube:nth-child(2){animation-delay:.05s}.am-sube:nth-child(3){animation-delay:.1s}.am-sube:nth-child(4){animation-delay:.15s}.am-sube:nth-child(n+5){animation-delay:.2s}
-  .am-latir{animation:am-latir 1.8s ease-in-out infinite}
-  .am-cana-v{transform-origin:bottom;transform-box:fill-box;animation:am-viento 4s ease-in-out infinite alternate}
-}
-@keyframes am-vuela{from{transform:translate(-26%,6px)}to{transform:translate(22%,-6px)}}
-@keyframes am-sol{to{transform:translateY(-18px)}}
-@keyframes am-abrir{from{transform:scaleX(0)}}
-@keyframes am-subir{from{opacity:0;transform:translateY(14px)}}
-@keyframes am-latir{50%{opacity:.35}}
-@keyframes am-viento{to{transform:skewX(-3deg)}}
-html:not([data-tema="oscuro"]) .am-fondo-login{opacity:.32}
-/* ===================== NEÓN AL AMANECER (formal) · Catálogo ===================== */
-html[data-tema="oscuro"]{
-  --ink:#e8f3ef; --ink-2:#c6d8d3; --ink-3:#8fa9a4; --paper:#080c0e; --card:#0e1517; --field:#121c1f;
-  --accent:#2fcf95; --accent-dk:#34d89c; --accent-soft:#10261f;
-  --ok-soft:#10261f; --bad-soft:#2a1218; --warn-soft:#2b2414; --warn-line:#a37a2c;
-  --fondo:#080c0e; --tinta:#e8f3ef; --suave:#8fa9a4; --tenue:#6f8a85;
-  --panel:#0e1517; --campo-in:#121c1f; --linea:#1e3236; --lado:#0b1215;
-  --vidrio:#0e1517; --vidrio-2:#1e3236; --borde:#1e3236; --borde-2:#2a4247;
-  --tallo:#34d89c; --verde:#34d89c; --aqua:#34d89c; --cielo:#5cc8ff; --violeta:#c49bff;
-  --caña-2:#10261f; --oro:#ffd166; --verde-fijo:#0b1215;
-  --campo:#34d89c; --taller:#ffd166; --atraso:#ff6b7f; --sin:#8fa9a4;
-  --sombra:0 8px 24px rgba(0,0,0,.45);
-}
-html[data-tema="oscuro"] .login-caja header,html[data-tema="oscuro"] .movil-top,html[data-tema="oscuro"] .tabbar,html[data-tema="oscuro"] .dlg-cab{background:linear-gradient(110deg,#0b1215 0%,#0f191b 55%,#26141f 100%)}
-html[data-tema="oscuro"] .movil-top{border-bottom:1px solid #1e3236}
-html[data-tema="oscuro"] .btn.prim,html[data-tema="oscuro"] .chip.activo{background:#2fcf95;color:#03170f;box-shadow:0 0 16px rgba(52,216,156,.22)}
-html[data-tema="oscuro"] .chip.activo b{color:#0b3a28}
-html[data-tema="oscuro"] .login-caja .btn.prim,html[data-tema="oscuro"] .barra .btn.prim{color:#03170f}
-html[data-tema="oscuro"] .btn{background:#121c1f;color:#e8f3ef;border:1px solid #1e3236}
-html[data-tema="oscuro"] .tabbar .nav.activo,html[data-tema="oscuro"] .tabbar .nav.activo:hover{background:rgba(52,216,156,.14);color:#34d89c}
-html[data-tema="oscuro"] .kpi,html[data-tema="oscuro"] .panel,html[data-tema="oscuro"] .eq,html[data-tema="oscuro"] .ficha,html[data-tema="oscuro"] .filtros,html[data-tema="oscuro"] .login-caja form{border:1px solid #1e3236!important}
-html[data-tema="oscuro"] .kpi:hover,html[data-tema="oscuro"] .eq:hover,html[data-tema="oscuro"] .ficha:hover{border-color:rgba(52,216,156,.45)!important;box-shadow:0 0 22px rgba(52,216,156,.10)!important}
-html[data-tema="oscuro"] .kpi b{text-shadow:0 0 14px rgba(232,243,239,.15)}
-html[data-tema="oscuro"] table.t th{background:#0f2a26;color:#34d89c}
-html[data-tema="oscuro"] table.t tbody tr:nth-child(even) td{background:#0b1215}
-/* ----- encabezado de amanecer con el estado de la flota ----- */
-.am-hero-eq{display:flex;flex-wrap:wrap;background:var(--card);border-radius:26px;box-shadow:var(--sombra);overflow:hidden;margin-bottom:14px}
-html[data-tema="oscuro"] .am-hero-eq{border:1px solid #1e3236}
-.am-hero-eq .txt{flex:1 1 340px;padding:22px 26px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-.am-hero-eq .txt > div{flex:1 1 220px}
-.am-hero-eq h2{font-size:clamp(21px,3vw,27px);line-height:1.15;margin:3px 0 6px}
-.am-hero-eq p{margin:0;color:var(--suave);font-weight:700}
-.am-hero-eq .aro-eq{flex:none}
-.am-hero-eq .aro-eq text{font-family:Nunito,sans-serif}
-.am-hero-eq .fig{flex:1 1 400px;min-height:210px;position:relative;overflow:hidden}
-.am-camion{position:absolute;left:0;bottom:12%;width:44%;max-width:300px}
-@media (prefers-reduced-motion: no-preference){ .am-camion{animation:am-maneja 16s ease-in-out infinite alternate} .am-rueda{transform-box:fill-box;transform-origin:center;animation:am-gira 1.2s linear infinite} .aro-eq .aro{animation:am-aro 1.3s cubic-bezier(.2,.7,.2,1) both} }
-@keyframes am-maneja{from{transform:translateX(4%)}to{transform:translateX(118%)}}
-@keyframes am-gira{to{transform:rotate(360deg)}}
-@keyframes am-aro{from{stroke-dasharray:0 100}}
-/* ----- KPI con ícono y barra ----- */
-.kpi{position:relative;overflow:hidden}
-.kpi .kpi-ico{position:absolute;right:14px;top:14px;width:40px;height:40px;border-radius:14px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--c)}
-.kpi .kpi-ico svg{width:22px;height:22px}
-.kpi .kpi-bar{display:block;height:6px;border-radius:999px;background:var(--campo-in);margin-top:10px;overflow:hidden}
-.kpi .kpi-bar i{display:block;height:100%;border-radius:999px;background:var(--c)}
-@media (prefers-reduced-motion: no-preference){ .kpi .kpi-bar i{animation:am-crece .9s cubic-bezier(.2,.7,.2,1) backwards .15s;transform-origin:left} }
-@keyframes am-crece{from{transform:scaleX(0)}}
-@media (max-width:760px){ .am-hero-eq .fig{min-height:160px;flex-basis:100%} .am-hero-eq .txt{padding:18px} .kpi .kpi-ico{width:32px;height:32px;right:10px;top:10px} .kpi .kpi-ico svg{width:18px;height:18px} }
 </style>
 </head>
 <body>
@@ -768,7 +661,6 @@ html[data-tema="oscuro"] .am-hero-eq{border:1px solid #1e3236}
         <button class="btn prim" type="button" id="btnExcel">Elegir Excel</button>
         <input type="file" id="archivoExcel" accept=".xlsx,.xls,.xlsm,.csv" hidden>
       </section>
-      <section class="am-hero-eq am-sube" id="amHeroEq"></section>
       <div class="filtros vidrio" id="filtroInicio" aria-label="Filtrar por zona"></div>
       <div class="kpis" id="kpis"></div>
       <section class="panel vidrio" style="margin-bottom:14px"><h2>Equipos en reparación por zona y grupo <span class="nota der" style="font-weight:400">Toque un número para ver los equipos</span></h2><div id="matriz"></div></section>
@@ -1253,20 +1145,6 @@ function matriz(E){
     ${grupos.map(g => `<tr><td><b>${esc(bonito(g))}</b></td>${zonas.map(z => c(n(g, z), g, z)).join('')}<td class="num"><b>${n(g) || '·'}</b></td></tr>`).join('')}
     <tr class="tot"><td><b>Total</b></td>${zonas.map(z => `<td class="num"><b>${n(null, z)}</b></td>`).join('')}<td class="num"><b>${R.length}</b></td></tr></tbody></table></div>`;
 }
-function amHeroEquipos(E, campo, rep, atr, H, f){
-  const h = $('#amHeroEq'); if (!h) return;
-  const p = E.length ? campo / E.length : 0, pp = Math.round(p * 100);
-  const fig = h.querySelector('.fig');
-  h.innerHTML = `<div class="txt"><svg class="aro-eq" viewBox="0 0 36 36" width="118" height="118" role="img" aria-label="${pp}% de los equipos en campo">
-      <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--campo-in)" stroke-width="3.4"/>
-      ${E.length ? `<circle class="aro" cx="18" cy="18" r="15.9" fill="none" stroke="var(--campo)" stroke-width="3.4" stroke-dasharray="${(p*100).toFixed(2)} ${(100-p*100).toFixed(2)}" stroke-dashoffset="25" stroke-linecap="round"/>` : ''}
-      <text x="18" y="19.5" text-anchor="middle" font-weight="900" font-size="8.5" fill="var(--tinta)">${pp}%</text><text x="18" y="24.5" text-anchor="middle" font-weight="700" font-size="3" fill="var(--suave)">en campo</text></svg>
-    <div><small class="am-eyebrow">${esc(f.zonas.length ? f.zonas.join(', ') : 'Todas las zonas')} · ${H.toLocaleDateString('es-GT', { day:'numeric', month:'long' })}</small>
-      <h2>${campo} de ${E.length} equipos trabajando en campo</h2>
-      <p>${rep.length} en reparación o pendientes${atr.length ? ` · <span style="color:var(--atraso)">${atr.length} vencidos</span>` : ' · ninguno vencido'}</p></div></div>`;
-  if (fig) h.appendChild(fig);
-  else h.insertAdjacentHTML('beforeend', `<div class="fig">${amEscena({ solX:180 })}<svg class="am-camion" viewBox="0 0 220 90" aria-hidden="true"><rect x="40" y="18" width="104" height="40" rx="18" fill="#c9d6cf" stroke="#2f3b33" stroke-width="3"/><path d="M54 38 H130" stroke="#2f3b33" stroke-width="2" opacity=".35"/><path d="M144 28 h26 l16 18 v18 h-42z" fill="#2f3b33"/><rect x="156" y="33" width="14" height="10" rx="2" fill="#ffd2a6"/><path d="M30 64 H190" stroke="#2f3b33" stroke-width="5" stroke-linecap="round"/><g class="am-rueda"><circle cx="66" cy="72" r="13" fill="#1b2420" stroke="#5b6b60" stroke-width="3"/><path d="M66 61v22M55 72h22" stroke="#5b6b60" stroke-width="2"/></g><g class="am-rueda"><circle cx="168" cy="72" r="13" fill="#1b2420" stroke="#5b6b60" stroke-width="3"/><path d="M168 61v22M157 72h22" stroke="#5b6b60" stroke-width="2"/></g><path d="M0 54 H36" stroke="#5b6b60" stroke-width="4" stroke-linecap="round"/><path d="M6 54v8M20 54v8M34 54v8" stroke="#5b6b60" stroke-width="2"/></svg></div>`);
-}
 function pintarInicio(){
   const f = filtroDe('inicio');
   $('#filtroInicio').innerHTML = `<div class="fila-chips"><span class="lbl">Zona</span>${chipsZona('inicio', S.equipos.filter(e => !f.grupos.length || f.grupos.includes(e.grupo)))}</div>
@@ -1285,15 +1163,13 @@ function pintarInicio(){
   $('#saludo').textContent = `${hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches'}, ${S.ses?.usuario?.nombre?.split(' ')[0] || ''}`.trim();
   $('#subResumen').textContent = `Resumen al ${H.toLocaleDateString('es-GT', { weekday:'long', day:'numeric', month:'long', year:'numeric' })} · ${f.zonas.length ? f.zonas.join(', ') : 'todas las zonas'} · ${f.grupos.length ? f.grupos.map(bonito).join(', ') : 'todos los tipos'}`;
   $('#ultimaCarga').textContent = S.ultimaCarga ? 'Última carga de Excel: ' + S.ultimaCarga : '';
-  const ICO = { catalogo:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>', campo:'<path d="M3 17h2l3-7h7l2 4h4v3"/><circle cx="7" cy="18" r="2.5"/><circle cx="17" cy="18" r="2.5"/>', taller:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>', vencidos:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/>' };
-  const k = (t, n, sub, c, irA, ico, frac) => `<button type="button" class="kpi vidrio" style="--c:${c}" data-ir="${irA}"><i class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICO[ico]}</svg></i><small>${t}</small><b>${n}</b><span>${sub}</span>${frac === undefined ? '' : `<span class="kpi-bar"><i style="width:${Math.max(2, Math.min(100, frac * 100)).toFixed(1)}%"></i></span>`}</button>`;
+  const k = (t, n, sub, c, irA) => `<button type="button" class="kpi vidrio" style="--c:${c}" data-ir="${irA}"><small>${t}</small><b>${n}</b><span>${sub}</span></button>`;
   const enTaller = rep.filter(e => e.estado === 'taller');
   $('#kpis').innerHTML =
-    k('Total de equipos', E.length, `${new Set(E.map(e => e.grupo)).size} tipos de equipo`, 'var(--aqua)', 'catalogo', 'catalogo', 1) +
-    k('Listos · trabajando en campo', campo, 'Entregados por el taller', 'var(--campo)', 'campo', 'campo', E.length ? campo / E.length : 0) +
-    k('En reparación / pendientes', rep.length, `${enTaller.length} en taller${sin ? ` · ${sin} pendientes de ingreso` : ''}`, 'var(--taller)', 'taller', 'taller', E.length ? rep.length / E.length : 0) +
-    k('Vencidos', atr.length, atr.length ? `Hasta ${Math.max(...atr.map(e => e.atraso))} días pasados de su requerimiento` : 'Ninguno pasado de su fecha', 'var(--atraso)', 'taller', 'vencidos', rep.length ? atr.length / rep.length : 0);
-  amHeroEquipos(E, campo, rep, atr, H, f);
+    k('Total de equipos', E.length, `${new Set(E.map(e => e.grupo)).size} tipos de equipo`, 'var(--aqua)', 'catalogo') +
+    k('Listos · trabajando en campo', campo, 'Entregados por el taller', 'var(--campo)', 'campo') +
+    k('En reparación / pendientes', rep.length, `${enTaller.length} en taller${sin ? ` · ${sin} pendientes de ingreso` : ''}`, 'var(--taller)', 'taller') +
+    k('Vencidos', atr.length, atr.length ? `Hasta ${Math.max(...atr.map(e => e.atraso))} días pasados de su requerimiento` : 'Ninguno pasado de su fecha', 'var(--atraso)', 'taller');
   $('#matriz').innerHTML = rep.length ? matriz(E) : '<p class="nota">No hay equipos en reparación en esta selección.</p>';
   // por grupo
   const porG = {};
@@ -2144,7 +2020,7 @@ cargarFiltros();
   var K = 'mde_tema';
   var LUNA = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>';
   var SOL = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>';
-  function leer(){ try { return localStorage.getItem(K) === 'claro' ? 'claro' : 'oscuro'; } catch(e){ return 'oscuro'; } }
+  function leer(){ try { return localStorage.getItem(K) === 'oscuro' ? 'oscuro' : 'claro'; } catch(e){ return 'claro'; } }
   function aplicar(t){
     var r = document.documentElement;
     if (t === 'oscuro') r.setAttribute('data-tema', 'oscuro'); else r.removeAttribute('data-tema');
@@ -2156,7 +2032,7 @@ cargarFiltros();
       b.setAttribute('aria-label', b.title);
     }
     var m = document.querySelector('meta[name="theme-color"]');
-    if (m){ if (!m.getAttribute('data-claro')) m.setAttribute('data-claro', m.content); m.content = t === 'oscuro' ? '#0b1215' : m.getAttribute('data-claro'); }
+    if (m){ if (!m.getAttribute('data-claro')) m.setAttribute('data-claro', m.content); m.content = t === 'oscuro' ? '#14301a' : m.getAttribute('data-claro'); }
     try { window.dispatchEvent(new CustomEvent('mde-tema', { detail: t })); } catch(e){}
   }
   window.mdeTema = {
@@ -2168,13 +2044,10 @@ cargarFiltros();
     var b = e.target.closest && e.target.closest('[data-tema-btn]');
     if (b){ e.preventDefault(); window.mdeTema.alternar(); }
   });
-  window.addEventListener('storage', function(e){ if (e.key === K) aplicar(e.newValue === 'claro' ? 'claro' : 'oscuro'); });
+  window.addEventListener('storage', function(e){ if (e.key === K) aplicar(e.newValue === 'oscuro' ? 'oscuro' : 'claro'); });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ aplicar(leer()); });
   else aplicar(leer());
 })();
-</script>
-<script>
-(function(){ try { var h = document.querySelector('.login-caja header'); if (h && window.amEscena){ h.style.overflow = 'hidden'; h.insertAdjacentHTML('afterbegin', amEscena()); var e = h.querySelector('.am-escena'); e.style.zIndex = 0; e.classList.add('am-fondo-login'); [].forEach.call(h.children, function(c){ if (c !== e && getComputedStyle(c).position === 'static'){ c.style.position = 'relative'; c.style.zIndex = 1; } }); } } catch(e){} })();
 </script>
 </body>
 </html>
