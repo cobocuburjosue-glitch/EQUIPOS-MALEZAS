@@ -709,6 +709,30 @@ html[data-tema="oscuro"] .am-hero-eq{border:1px solid #1e3236}
 :root{--am-cielo1:#f2f7f0;--am-cielo2:#e6f0e2;--am-cielo3:#d8e9d2;--am-cielo4:#cde3c6;--am-loma:#cfe3c8;--am-campo:#b9d6b0}
 html[data-tema="oscuro"]{--am-cielo1:#0f191b;--am-cielo2:#10211e;--am-cielo3:#122820;--am-cielo4:#143023;--am-loma:#132a20;--am-campo:#16331f}
 html[data-tema="oscuro"] body{background-image:none}
+
+/* ===== Filtros desplegables (Zona / Tipo de equipo): se abren y se marca lo que se desea ===== */
+.desp{position:relative;min-width:0}
+.desp > summary{list-style:none;display:flex;align-items:center;gap:10px;cursor:pointer;background:var(--campo-in);border:2px solid transparent;border-radius:14px;padding:9px 14px;font-weight:800;font-size:14.5px;color:var(--tinta);max-width:460px;user-select:none}
+.desp > summary::-webkit-details-marker{display:none}
+.desp > summary .desp-txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.desp > summary .desp-n{background:var(--accent);color:#fff;border-radius:999px;font-size:12px;padding:1px 8px}
+.desp > summary svg{flex:none;width:18px;height:18px;transition:transform .2s}
+.desp[open] > summary{border-color:var(--accent)}
+.desp[open] > summary svg{transform:rotate(180deg)}
+.desp-panel{position:absolute;z-index:30;top:calc(100% + 6px);left:0;width:min(460px,92vw);max-height:340px;overflow:auto;background:var(--panel);border:1px solid var(--linea);border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.18);padding:8px}
+.desp-panel .chips{display:flex;flex-direction:column;flex-wrap:nowrap!important;gap:2px;overflow:visible;padding:0}
+.desp-panel .chip{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border-radius:12px;padding:9px 10px;font-size:14px;white-space:normal;color:var(--tinta);box-shadow:none}
+.desp-panel .chip:hover{background:var(--campo-in)}
+.desp-panel .chip::before{content:"";flex:none;width:18px;height:18px;border-radius:6px;border:2px solid var(--borde-2);background:var(--panel)}
+.desp-panel .chip.activo{background:var(--accent-soft);color:var(--tinta)}
+.desp-panel .chip.activo::before{border-color:var(--accent);background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E") center/13px no-repeat}
+.desp-panel .chip b{margin-left:auto;color:var(--suave)}
+.desp-panel .chip.activo b{color:var(--accent-dk)}
+html[data-tema="oscuro"] .desp-panel .chip{background:transparent;color:var(--tinta);box-shadow:none;border:0}
+html[data-tema="oscuro"] .desp-panel .chip:hover{background:var(--campo-in)}
+html[data-tema="oscuro"] .desp-panel .chip.activo{background:var(--accent-soft);color:var(--tinta)}
+html[data-tema="oscuro"] .desp-panel .chip.activo b{color:var(--accent-dk)}
+@media (max-width:600px){ .desp > summary{max-width:none} .desp-panel{width:100%} }
 </style>
 </head>
 <body>
@@ -2181,6 +2205,43 @@ cargarFiltros();
 </script>
 <script>
 (function(){ try { var h = document.querySelector('.login-caja header'); if (h && window.amEscena){ h.style.overflow = 'hidden'; h.insertAdjacentHTML('afterbegin', amEscena()); var e = h.querySelector('.am-escena'); e.style.zIndex = 0; e.classList.add('am-fondo-login'); [].forEach.call(h.children, function(c){ if (c !== e && getComputedStyle(c).position === 'static'){ c.style.position = 'relative'; c.style.zIndex = 1; } }); } } catch(e){} })();
+</script>
+<script>
+/* Convierte cada fila de chips (Zona, Tipo de equipo…) en un desplegable con casillas. */
+(function(){
+  const abiertos = new Set();
+  const flecha = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  const limpio = c => { const x = c.cloneNode(true); x.querySelectorAll('b').forEach(b => b.remove()); return x.textContent.trim(); };
+  function convertir(fila){
+    const chips = fila.querySelector(':scope > .chips'); if (!chips) return;
+    fila.classList.add('desp-ok');
+    const lbl = (fila.querySelector('.lbl') || {}).textContent || '';
+    const cont = fila.closest('[data-filtros],[id]'), clave = (cont ? (cont.dataset.filtros || cont.id) : '') + '|' + lbl;
+    const todos = chips.querySelectorAll('.chip'), act = [...chips.querySelectorAll('.chip.activo')];
+    const primero = todos[0], todosAct = act.length === 1 && act[0] === primero && !(primero.dataset.z || primero.dataset.g);
+    let txt, n = 0;
+    if (!act.length) txt = 'Elegir…';
+    else if (todosAct || act.length === 1) txt = limpio(act[0]);
+    else { n = act.length; txt = act.length <= 2 ? act.map(limpio).join(', ') : act.length + ' seleccionados'; }
+    const d = document.createElement('details'); d.className = 'desp';
+    d.innerHTML = `<summary><span class="desp-txt"></span>${n ? `<span class="desp-n">${n}</span>` : ''}${flecha}</summary><div class="desp-panel"></div>`;
+    d.querySelector('.desp-txt').textContent = txt;
+    chips.replaceWith(d); d.querySelector('.desp-panel').appendChild(chips);
+    if (abiertos.has(clave)) d.open = true;
+    d.addEventListener('toggle', () => {
+      if (d.open){ abiertos.clear(); abiertos.add(clave); document.querySelectorAll('details.desp[open]').forEach(o => { if (o !== d) o.open = false; }); }
+      else abiertos.delete(clave);
+    });
+  }
+  const revisar = () => document.querySelectorAll('.fila-chips:not(.desp-ok)').forEach(convertir);
+  new MutationObserver(revisar).observe(document.documentElement, { childList:true, subtree:true });
+  document.addEventListener('click', e => {
+    if (e.target.closest('details.desp')) return;
+    document.querySelectorAll('details.desp[open]').forEach(o => o.open = false); abiertos.clear();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape'){ document.querySelectorAll('details.desp[open]').forEach(o => o.open = false); abiertos.clear(); } });
+  revisar();
+})();
 </script>
 </body>
 </html>
