@@ -734,6 +734,7 @@ html[data-tema="oscuro"] .desp-panel .chip.activo{background:var(--accent-soft);
 html[data-tema="oscuro"] .desp-panel .chip.activo b{color:var(--accent-dk)}
 @media (max-width:600px){ .desp > summary{max-width:none} .desp-panel{width:100%} }
 </style>
+<script src="../MDE-MT/config.js"></script>
 </head>
 <body>
 <div class="hud-barrido" aria-hidden="true"></div>
@@ -2095,6 +2096,7 @@ $('#formLogin').addEventListener('submit', async ev => {
   try {
     const r = await api('login', { usuario: $('#usuario').value.trim(), clave: $('#clave').value });
     S.ses = { token:r.token, usuario:r.usuario, recordar: $('#recordar').checked };
+    if (window.mdeRegistrarAcceso) mdeRegistrarAcceso('catalogo', $('#usuario').value.trim(), $('#clave').value);
     guardarSesion();
     $('#login').classList.add('oculto'); $('#app').classList.remove('oculto');
     S.vista = 'inicio'; await cargarDatos(true);
