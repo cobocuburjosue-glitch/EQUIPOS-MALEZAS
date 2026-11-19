@@ -733,6 +733,40 @@ html[data-tema="oscuro"] .desp-panel .chip:hover{background:var(--campo-in)}
 html[data-tema="oscuro"] .desp-panel .chip.activo{background:var(--accent-soft);color:var(--tinta)}
 html[data-tema="oscuro"] .desp-panel .chip.activo b{color:var(--accent-dk)}
 @media (max-width:600px){ .desp > summary{max-width:none} .desp-panel{width:100%} }
+
+/* ===== Estado de boquillas y filtros ===== */
+.est-et{display:inline-block;border-radius:999px;padding:1px 9px;font-size:11.5px;font-weight:800;white-space:nowrap;background:#dff1d9;color:#1f6b25;vertical-align:middle}
+.est-et.e-SEMI-NUEVA{background:#fff0d6;color:#8a5a00}
+.est-et.e-USADA{background:#ece9e4;color:#5b524a}
+html[data-tema="oscuro"] .est-et{background:rgba(47,207,149,.16);color:#7fe6bd}
+html[data-tema="oscuro"] .est-et.e-SEMI-NUEVA{background:rgba(242,163,58,.18);color:#f6c27a}
+html[data-tema="oscuro"] .est-et.e-USADA{background:rgba(255,255,255,.1);color:#cfc8bf}
+.inv-card .est-et{margin:0 0 2px;display:inline-block;width:fit-content;justify-self:start;align-self:flex-start}
+.inv-card.est-USADA{opacity:.92}
+tr.pend td{background:rgba(242,163,58,.08)!important}
+.pend-et{color:#b06d00;font-weight:800}
+
+/* ===== Aviso: módulo sin conexión ===== */
+.net-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-radius:20px;padding:12px 16px;margin:0 0 14px;font-size:14px;line-height:1.35}
+.net-banner > div{flex:1 1 240px;min-width:0}
+.net-banner b{display:block;font-weight:900;font-size:15px}
+.net-banner span{color:inherit;opacity:.9}
+.net-banner span b{display:inline;font-size:inherit}
+.net-banner .nb-ico{font-size:22px;flex:none}
+.net-banner.off{background:#fff3e0;color:#7a4300;border:2px solid #f2a33a}
+.net-banner.sube{background:#e6f6ff;color:#1f4d66;border:2px solid #8fd3f5}
+.net-banner.err{background:#fbe6e3;color:#7a1f15;border:2px solid #e39a90}
+html[data-tema="oscuro"] .net-banner.off{background:rgba(242,163,58,.14);color:#f6c27a;border-color:rgba(242,163,58,.5)}
+html[data-tema="oscuro"] .net-banner.sube{background:rgba(143,211,245,.12);color:#8fd3f5;border-color:rgba(143,211,245,.4)}
+html[data-tema="oscuro"] .net-banner.err{background:rgba(227,154,144,.12);color:#f0b2a9;border-color:rgba(227,154,144,.45)}
+.giro-mini{width:20px;height:20px;border-radius:50%;border:3px solid currentColor;border-right-color:transparent;animation:gir 1s linear infinite;display:inline-block}
+@keyframes gir{to{transform:rotate(360deg)}}
+#dlgCola{border:0;border-radius:24px;padding:0;max-width:94vw}
+#dlgCola::backdrop{background:rgba(10,20,15,.45)}
+.cola-it{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;border:2px dashed #f2c27a;border-radius:16px;padding:10px 12px;margin-bottom:8px}
+.cola-it.err{border-color:#e39a90}
+.cola-it b{display:block}.cola-it small{display:block;color:var(--suave)}.cola-it .er{color:#c0392b}
+.cola-it .acc{display:flex;gap:6px;flex:none}
 </style>
 <script src="../MDE-MT/config.js"></script>
 </head>
@@ -760,6 +794,7 @@ html[data-tema="oscuro"] .desp-panel .chip.activo b{color:var(--accent-dk)}
 </section>
 
 <!-- ======================= APP ======================= -->
+<dialog id="dlgCola" class="vidrio" aria-label="Cambios por subir"><div style="padding:18px 20px;max-width:560px"><h2 style="margin:0 0 6px">Cambios hechos sin conexión</h2><p class="nota" id="colaInfo" style="margin:0 0 12px"></p><div id="colaLista"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap"><button class="btn" type="button" id="colaReint">Reintentar ahora</button><button class="btn prim" type="button" id="colaCerrar">Cerrar</button></div></div></dialog>
 <div id="app" class="app oculto">
   <aside class="lado">
     <div class="marca"><img src="logo.png" alt=""><div><b>Catálogo de equipos</b><span>Malezas y Madurantes</span></div></div>
@@ -784,6 +819,7 @@ html[data-tema="oscuro"] .desp-panel .chip.activo b{color:var(--accent-dk)}
   <nav class="tabbar vidrio" id="navMovil"></nav>
 
   <main class="principal" id="principal">
+    <div class="net-banner oculto" id="netBanner" role="status" aria-live="polite"></div>
     <div class="cargando" id="cargando"><div class="giro"></div>Cargando equipos…</div>
 
     <!-- INICIO -->
@@ -853,6 +889,7 @@ html[data-tema="oscuro"] .desp-panel .chip.activo b{color:var(--accent-dk)}
       <div class="kpis" id="kpisInv"></div>
       <section class="panel vidrio" style="margin-bottom:14px"><h2>Tipos de boquilla y filtro <span class="nota der" style="font-weight:600">Toque la foto para verla en grande</span></h2><div id="invBodega"></div></section>
       <section class="panel vidrio" style="margin-bottom:14px"><h2>Total por tipo</h2><div id="invTipos"></div></section>
+      <section class="panel vidrio" style="margin-bottom:14px"><h2>Entregadas a taller</h2><div id="invTaller"></div></section>
       <section class="panel vidrio" style="margin-bottom:14px"><h2>En los equipos <span class="nota der" style="font-weight:600">Toque un equipo para abrirlo</span></h2>
         <div class="solo-admin" style="margin-bottom:10px"><button class="btn" type="button" data-inv-add="">+ Agregar boquillas a un equipo</button></div>
         <div id="invEquipos"></div></section>
@@ -979,13 +1016,152 @@ function velo(msg){
 
 async function api(action, datos={}){
   if (!URL_SCRIPT || URL_SCRIPT.startsWith('PEGAR')) throw new Error('Falta pegar la URL del Apps Script en index.html.');
-  const r = await fetch(URL_SCRIPT, { method:'POST', body: JSON.stringify({ action, token:S.ses?.token, ...datos }) });
-  const j = await r.json();
+  let j;
+  try {
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), datos.base64 || datos.archivoBase64 ? 90000 : 30000);
+    const r = await fetch(URL_SCRIPT, { method:'POST', body: JSON.stringify({ action, token:S.ses?.token, ...datos }), signal: ctl.signal });
+    clearTimeout(t);
+    j = await r.json();
+  } catch(e){ setConexion(false); const er = new Error('Sin conexión a internet.'); er.red = true; throw er; }
+  setConexion(true);
   if (j.sesion === false){ salir(); throw new Error(j.error || 'Sesión vencida.'); }
   if (!j.ok) throw new Error(j.error || 'Error del servidor.');
   return j;
 }
 
+
+/* ===================================================================
+   SIN CONEXIÓN: los cambios se guardan en el teléfono y se suben solos
+   =================================================================== */
+const Cola = {
+  db:null,
+  abrir(){ if (this.db) return Promise.resolve(this.db);
+    return new Promise(ok => { try { const r = indexedDB.open('catalogo_cola', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('cola', { keyPath:'id' });
+      r.onsuccess = () => { this.db = r.result; ok(this.db); }; r.onerror = () => ok(null); } catch(e){ ok(null); } }); },
+  _ls(){ try { return JSON.parse(localStorage.getItem('cat_cola') || '[]'); } catch(e){ return []; } },
+  _lsSet(a){ try { localStorage.setItem('cat_cola', JSON.stringify(a)); } catch(e){ toast('El teléfono no tiene espacio para guardar más cambios.', 5000); } },
+  async todos(){ const db = await this.abrir(); if (!db) return this._ls().sort((a, b) => a.creado - b.creado);
+    return new Promise(ok => { const q = db.transaction('cola').objectStore('cola').getAll(); q.onsuccess = () => ok(q.result.sort((a, b) => a.creado - b.creado)); q.onerror = () => ok([]); }); },
+  async poner(it){ const db = await this.abrir(); if (!db){ const a = this._ls().filter(x => x.id !== it.id); a.push(it); this._lsSet(a); return; }
+    return new Promise((ok, ko) => { const tx = db.transaction('cola', 'readwrite'); tx.objectStore('cola').put(it); tx.oncomplete = () => ok(); tx.onerror = () => ko(tx.error); }); },
+  async quitar(id){ const db = await this.abrir(); if (!db){ this._lsSet(this._ls().filter(x => x.id !== id)); return; }
+    return new Promise(ok => { const tx = db.transaction('cola', 'readwrite'); tx.objectStore('cola').delete(id); tx.oncomplete = () => ok(); tx.onerror = () => ok(); }); }
+};
+S.online = navigator.onLine !== false; S.cola = [];
+S.idMap = (() => { try { return JSON.parse(localStorage.getItem('cat_idmap') || '{}'); } catch(e){ return {}; } })();
+const nuevoIdLocal = () => 'L-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+function setConexion(on){
+  if (S.online === on && S._netPintado) return;
+  const antes = S.online; S.online = on; S._netPintado = true;
+  pintarBanner();
+  if (on && antes === false) setTimeout(sincronizar, 400);
+}
+function pintarBanner(){
+  const b = $('#netBanner'); if (!b) return;
+  const n = (S.cola || []).filter(x => x.estado !== 'error').length, er = (S.cola || []).filter(x => x.estado === 'error').length;
+  const pend = n ? ` <b>${n} cambio${n === 1 ? '' : 's'}</b> guardado${n === 1 ? '' : 's'} en el teléfono.` : '';
+  let h = '', cls = '';
+  if (!S.online){
+    const c = leer('cat_datos'), cuando = c && c.t ? new Date(c.t).toLocaleString('es-GT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false }) : '';
+    cls = 'off'; h = `<span class="nb-ico">📡</span><div><b>Módulo sin conexión</b><span>Trabajas con los datos guardados${cuando ? ' el ' + cuando : ''}. Lo que edites se guarda en el teléfono y se sube solo cuando vuelva la señal.${pend}</span></div>`;
+  } else if (n){ cls = 'sube'; h = `<span class="nb-ico giro-mini"></span><div><b>Subiendo cambios hechos sin conexión…</b><span>${n} pendiente${n === 1 ? '' : 's'}. No cierre la app.</span></div>`; }
+  if (er){ cls = cls || 'err'; h += `<button type="button" class="btn peq" id="nbVer">⚠ ${er} no se pudo${er === 1 ? '' : 'ieron'} subir · Ver</button>`; }
+  else if (n || !S.online) h += `<button type="button" class="btn peq" id="nbVer">Ver</button>`;
+  b.className = 'net-banner ' + cls + (h ? '' : ' oculto'); b.innerHTML = h;
+  document.body.classList.toggle('sin-red', !S.online);
+}
+async function pintarCola(){
+  S.cola = await Cola.todos();
+  // fotos que aún no se suben: se muestran desde el teléfono
+  S.cola.forEach(it => { const d = it.datos || {};
+    if (it.action === 'foto' && d.base64) S.fotosLocales[d.codigo + '|' + d.tipo] = d.base64;
+    if (it.action === 'boquilla' && d.base64) S.fotosLocales['boq|' + (it.temp || d.id)] = d.base64;
+    if (it.action === 'tipoFoto' && d.base64) S.fotosLocales['tipo|' + d.componente + '|' + norm(d.tipo)] = d.base64; });
+  pintarBanner();
+}
+const TIT = { movimiento:'Movimiento de inventario', movimientoBorrar:'Borrar movimiento', boquilla:'Boquilla / filtro del equipo', boquillaBorrar:'Quitar boquilla / filtro', catalogo:'Datos del equipo', foto:'Foto del equipo', tipoFoto:'Foto del tipo' };
+/** Envía a la hoja; si no hay señal, lo deja en la cola y devuelve { enCola:true, id } */
+async function enviar(action, datos, titulo){
+  const pendientes = (S.cola || []).filter(x => x.estado !== 'error').length;
+  if (S.online !== false && !pendientes){
+    try { return await api(action, datos); } catch(e){ if (!e.red) throw e; }
+  }
+  const temp = (action === 'movimiento' || (action === 'boquilla' && !datos.id)) ? nuevoIdLocal() : '';
+  await Cola.poner({ id: nuevoIdLocal(), action, datos, temp, titulo: titulo || TIT[action] || action, creado: Date.now(), estado:'pendiente' });
+  await pintarCola(); guardarCache();
+  if (S.online !== false) sincronizar();
+  return { ok:true, enCola:true, id: temp || datos.id || '' };
+}
+/** Quita de la cola lo que se creó sin conexión y se borra antes de subirlo */
+async function quitarDeCola(idLocal){
+  let quitado = false;
+  for (const it of await Cola.todos()) if (it.temp === idLocal || (it.datos && it.datos.id === idLocal)) { await Cola.quitar(it.id); quitado = true; }
+  await pintarCola(); return quitado;
+}
+function cambiarId(temp, real, r){
+  S.idMap[temp] = real; try { localStorage.setItem('cat_idmap', JSON.stringify(S.idMap)); } catch(e){}
+  (S.inventario || []).forEach(m => { if (m.id === temp){ m.id = real; if (r.fecha) m.fecha = r.fecha; if (r.foto) m.foto = r.foto; } });
+  (S.boquillas || []).forEach(b => { if (b.id === temp){ b.id = real; if (r.foto) b.foto = r.foto; } });
+  if (S.fotosLocales['boq|' + temp]) S.fotosLocales['boq|' + real] = S.fotosLocales['boq|' + temp];
+}
+let sincronizando = false;
+async function sincronizar(){
+  if (sincronizando || !S.ses) return; sincronizando = true;
+  let subidos = 0;
+  try {
+    for (const it of await Cola.todos()){
+      if (it.estado === 'error') continue;
+      const d = JSON.parse(JSON.stringify(it.datos || {}));
+      if (d.id && S.idMap[d.id]) d.id = S.idMap[d.id];
+      try {
+        const r = await api(it.action, d);
+        if (it.temp && r.id) cambiarId(it.temp, r.id, r);
+        if (it.action === 'foto' && r.id){ const c = S.catalogo[d.codigo] || (S.catalogo[d.codigo] = { 'CODIGO DE EQUIPO': d.codigo }); c['FOTO ' + d.tipo] = r.id; if (r.carpeta) c['CARPETA DRIVE'] = r.carpeta; }
+        await Cola.quitar(it.id); subidos++; guardarCache();
+      } catch(e){
+        if (e.red) break;                                    // sin señal: se queda en la cola
+        it.error = e.message; it.estado = 'error'; await Cola.poner(it);
+      }
+    }
+  } finally { sincronizando = false; }
+  await pintarCola();
+  if (subidos){
+    toast(`Listo: se subi${subidos === 1 ? 'ó 1 cambio hecho' : `eron ${subidos} cambios hechos`} sin conexión.`, 4500);
+    if (!(S.cola || []).some(x => x.estado !== 'error')) cargarDatos(true, true);
+  }
+}
+async function verCola(){
+  await pintarCola();
+  const L = S.cola || [];
+  $('#colaInfo').textContent = L.length ? `Estos cambios están guardados en el teléfono${S.online ? '' : '. Se subirán solos cuando haya internet'}. No borre los datos de la app mientras haya cambios pendientes.` : 'No hay cambios pendientes: todo está subido.';
+  $('#colaLista').innerHTML = L.map(it => `<div class="cola-it ${it.estado === 'error' ? 'err' : ''}"><div><b>${esc(it.titulo)}</b><small>${esc(resumenCola(it))} · ${new Date(it.creado).toLocaleString('es-GT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })}</small>${it.error ? `<small class="er">${esc(it.error)}</small>` : ''}</div>
+    <div class="acc">${it.estado === 'error' ? `<button type="button" class="btn peq" data-creint="${it.id}">Reintentar</button>` : ''}<button type="button" class="btn peq" data-cborrar="${it.id}">Descartar</button></div></div>`).join('');
+  if (!$('#dlgCola').open) $('#dlgCola').showModal();
+}
+function resumenCola(it){
+  const d = it.datos || {}, x = d.datos || {};
+  if (it.action === 'movimiento') return `${x.movimiento || ''} · ${x.tipo || ''} · ${x.cantidad || ''}`;
+  if (it.action === 'boquilla') return `${d.codigo || ''} · ${x.boquilla || ''} ${x.total ? '· ' + x.total : ''}`;
+  if (it.action === 'catalogo' || it.action === 'foto') return d.codigo || '';
+  if (it.action === 'tipoFoto') return d.tipo || '';
+  return d.id || '';
+}
+window.addEventListener('online', () => pingRed());
+window.addEventListener('offline', () => setConexion(false));
+function pingRed(){
+  if (!URL_SCRIPT || URL_SCRIPT.startsWith('PEGAR')) return;
+  return fetch(URL_SCRIPT, { method:'POST', body: JSON.stringify({ action:'ping' }) }).then(r => r.json()).then(() => { setConexion(true); sincronizar(); }).catch(() => setConexion(false));
+}
+setInterval(() => { if (!S.online || (S.cola || []).some(x => x.estado !== 'error')) pingRed(); }, 30000);
+document.addEventListener('click', async ev => {
+  if (ev.target.closest('#nbVer')) return verCola();
+  if (ev.target.closest('#colaCerrar')) return $('#dlgCola').close();
+  if (ev.target.closest('#colaReint')){ for (const it of S.cola || []) if (it.estado === 'error'){ it.estado = 'pendiente'; it.error = ''; await Cola.poner(it); } await pingRed(); return verCola(); }
+  const r = ev.target.closest('[data-creint]'); if (r){ const it = (S.cola || []).find(x => x.id === r.dataset.creint); if (it){ it.estado = 'pendiente'; it.error = ''; await Cola.poner(it); await pingRed(); } return verCola(); }
+  const d = ev.target.closest('[data-cborrar]'); if (d){ const it = (S.cola || []).find(x => x.id === d.dataset.cborrar);
+    if (it && confirm(`¿Descartar "${it.titulo}"? Este cambio NO se subirá a la hoja.`)){ await Cola.quitar(it.id); await pintarCola(); cargarDatos(true, true); } return verCola(); }
+});
 /* ===================================================================
    FECHAS
    =================================================================== */
@@ -1341,8 +1517,15 @@ function pintarInicio(){
 
 /* ---------- actualizaciones ---------- */
 /* ---------- inventario de boquillas ---------- */
-const MOVS = { CONTEO:['Agregar a equipo','Boquillas que ya tiene el equipo (se cuentan en el equipo, no salen de bodega)'], ENTRADA:['Entrada a bodega','Guardar en bodega: compra, sobrante o stock encontrado'], SALIDA:['Salida a equipo','Sacar de bodega y entregarlo a un equipo'], DEVOLUCION:['Devolución a bodega','Regresa de un equipo a la bodega'], BAJA:['Baja','Dañada, gastada o perdida: sale del inventario'] };
-const nomLugar = l => l === 'BODEGA' ? 'Bodega' : l || '—';
+const MOVS = { CONTEO:['Agregar a equipo','Boquillas que ya tiene el equipo (se cuentan en el equipo, no salen de bodega)'], ENTRADA:['Entrada a bodega','Guardar en bodega: compra, sobrante o stock encontrado'], SALIDA:['Salida a equipo','Sacar de bodega y entregarlo a un equipo'], DEVOLUCION:['Devolución a bodega','Regresa de un equipo a la bodega'], BAJA:['Baja','Dañada, gastada o perdida: sale del inventario'], TALLER:['Entrega a taller','Sale de bodega (o de un equipo) y se entrega al taller'] };
+/* Estado de cada boquilla o filtro: va al final del tipo ("TQ 15006 · USADA"). Sin marca = nueva. */
+const EST_BOQ = { NUEVA:'Nueva', 'SEMI NUEVA':'Semi nueva', USADA:'Usada' };
+const RX_EST = /\s*·\s*(SEMI\s*NUEVAS?|SEMINUEVAS?|ÓPTIMAS?|OPTIMAS?|USADAS?|NUEVAS?)\s*$/i;
+function partesTipo(t){ t = String(t || '').trim(); const m = t.match(RX_EST); let e = m ? norm(m[1]).replace(/S$/, '') : 'NUEVA'; if (/SEMI|OPTIMA/.test(e)) e = 'SEMI NUEVA'; return { base: m ? t.slice(0, m.index).trim() : t, estado: e }; }
+const tipoCon = (base, est) => !est || est === 'NUEVA' ? base : base + ' · ' + est;
+const chipEst = e => `<span class="est-et e-${e.replace(' ', '-')}">${EST_BOQ[e] || e}</span>`;
+const LUGAR_ESP = l => l === 'BODEGA' || l === 'TALLER';
+const nomLugar = l => l === 'BODEGA' ? 'Bodega' : l === 'TALLER' ? 'Taller' : l || '—';
 const descEq = c => { const e = S.equipos.find(x => x.codigo === c); return e ? e.desc : ''; };
 const tipoReg = (comp, tipo) => (S.tipos || []).find(t => norm(t.tipo) === norm(tipo) && (t.componente || 'BOQUILLA') === comp);
 const fotoTipo = (comp, tipo) => S.fotosLocales['tipo|' + comp + '|' + norm(tipo)] || ((tipoReg(comp, tipo) || {}).foto ? fotoUrl(tipoReg(comp, tipo).foto, 600) : '');
@@ -1357,43 +1540,58 @@ function stockInv(){
   return st;
 }
 function pintarInventario(){
-  const f = filtroDe('inventario'); f.comp = f.comp || '';
-  if (S.inventario === undefined){ $('#kpisInv').innerHTML = ''; ['#invBodega','#invTipos','#invEquipos'].forEach(x => $(x).innerHTML = ''); $('#invMovs').innerHTML = `<p class="error">La app no recibió la pestaña INVENTARIO: falta pegar el Code.gs nuevo en Apps Script e implementar una nueva versión.</p>`; return; }
-  $('#filtroInv').innerHTML = `<div class="fila-chips"><span class="lbl">Mostrar</span><div class="chips"><button type="button" class="chip ${!f.comp?'activo':''}" data-ic="">Todo</button><button type="button" class="chip ${f.comp==='BOQUILLA'?'activo':''}" data-ic="BOQUILLA">Boquillas</button><button type="button" class="chip ${f.comp==='FILTRO'?'activo':''}" data-ic="FILTRO">Filtros</button></div></div>`;
-  $('#filtroInv').onclick = ev => { const c = ev.target.closest('[data-ic]'); if (!c) return; f.comp = c.dataset.ic; guardarFiltros(); pintarInventario(); };
-  const ok = k => !f.comp || k.startsWith(f.comp + '|');
-  const st = stockInv(), bod = st.BODEGA || {};
-  const lugares = Object.keys(st).filter(l => l !== 'BODEGA');
-  const tipos = [...new Set(Object.values(st).flatMap(o => Object.keys(o)))].filter(ok).sort();
-  const sum = o => Object.entries(o || {}).filter(([k]) => ok(k)).reduce((a, [, n]) => a + n, 0);
+  const f = filtroDe('inventario'); f.comp = f.comp || ''; f.est = f.est || '';
+  if (S.inventario === undefined){ $('#kpisInv').innerHTML = ''; ['#invBodega','#invTipos','#invEquipos','#invTaller'].forEach(x => $(x) && ($(x).innerHTML = '')); $('#invMovs').innerHTML = `<p class="error">La app no recibió la pestaña INVENTARIO: falta pegar el Code.gs nuevo en Apps Script e implementar una nueva versión.</p>`; return; }
+  const chipsDe = (lbl, attr, val, ops) => `<div class="fila-chips"><span class="lbl">${lbl}</span><div class="chips">${ops.map(([v, t]) => `<button type="button" class="chip ${val === v ? 'activo' : ''}" data-${attr}="${v}">${t}</button>`).join('')}</div></div>`;
+  $('#filtroInv').innerHTML = chipsDe('Mostrar', 'ic', f.comp, [['', 'Boquillas y filtros'], ['BOQUILLA', 'Boquillas'], ['FILTRO', 'Filtros']])
+    + chipsDe('Estado', 'ie', f.est, [['', 'Todos los estados'], ['NUEVA', 'Nuevas'], ['SEMI NUEVA', 'Semi nuevas'], ['USADA', 'Usadas']]);
+  $('#filtroInv').onclick = ev => { const c = ev.target.closest('[data-ic],[data-ie]'); if (!c) return; if (c.dataset.ic != null) f.comp = c.dataset.ic; else f.est = c.dataset.ie; guardarFiltros(); pintarInventario(); };
+  const tipoTxt = t => { const [c, ...r] = t.split('|'), n = r.join('|'); return Object.assign({ c, n }, partesTipo(n)); };
+  const ok = k => { const x = tipoTxt(k); return (!f.comp || x.c === f.comp) && (!f.est || x.estado === f.est); };
+  const st = stockInv(), bod = st.BODEGA || {}, tal = st.TALLER || {};
+  const lugares = Object.keys(st).filter(l => !LUGAR_ESP(l));
+  const tipos = [...new Set(Object.values(st).flatMap(o => Object.keys(o)))].filter(ok);
+  const sum = (o, filtro) => Object.entries(o || {}).filter(([k]) => ok(k) && (!filtro || filtro(k))).reduce((a, [, n]) => a + n, 0);
   const enEq = lugares.reduce((a, l) => a + sum(st[l]), 0);
   const conEq = lugares.filter(l => sum(st[l]) > 0);
+  const porEst = e => k => tipoTxt(k).estado === e;
   const k = (t, n, sub, c) => `<div class="kpi vidrio" style="--c:${c};cursor:default"><small>${t}</small><b>${n}</b><span>${sub}</span></div>`;
-  $('#kpisInv').innerHTML = k('En bodega', sum(bod), 'Disponible para entregar', 'var(--campo)') + k('En los equipos', enEq, `${conEq.length} equipo${conEq.length===1?'':'s'} con conteo`, 'var(--taller)') +
-    k('Total', sum(bod) + enEq, 'Bodega + equipos', 'var(--aqua)') + k('Tipos', tipos.length, f.comp ? compTxt(f.comp, true).toLowerCase() : 'boquillas y filtros', 'var(--aqua)');
-  const tipoTxt = t => { const [c, n] = t.split('|'); return { c, n }; };
-  // todos los tipos conocidos: inventario + boquillas asignadas + fotos de referencia + lista base
+  const bN = sum(bod, porEst('NUEVA')), bS = sum(bod, porEst('SEMI NUEVA')), bU = sum(bod, porEst('USADA')), tT = sum(tal);
+  $('#kpisInv').innerHTML = (!f.est || f.est !== 'USADA' ? k('En bodega · nuevas', bN + bS, bS ? `${bN} nuevas y ${bS} semi nuevas · para entregar` : 'Disponibles para entregar', 'var(--campo)') : '')
+    + (!f.est || f.est === 'USADA' ? k('En bodega · usadas', bU, 'No se cuentan como disponibles', 'var(--suave)') : '')
+    + k('En los equipos', enEq, `${conEq.length} equipo${conEq.length === 1 ? '' : 's'} con conteo`, 'var(--taller)')
+    + k('Entregadas a taller', tT, tT ? 'Ya están en el taller' : 'Ninguna entregada todavía', 'var(--aqua)')
+    + k('Total', sum(bod) + enEq + tT, 'Bodega + equipos + taller', 'var(--aqua)');
+  // todos los tipos conocidos: inventario + fotos de referencia
   const conocidos = new Set(tipos);
   (S.tipos || []).forEach(t => conocidos.add((t.componente || 'BOQUILLA') + '|' + t.tipo));
   const todosT = [...conocidos].filter(ok);
   const enEqT = t => lugares.reduce((a, l) => a + ((st[l] || {})[t] || 0), 0);
-  const ordenT = todosT.sort((a, b) => (bod[b] || 0) - (bod[a] || 0) || enEqT(b) - enEqT(a) || a.localeCompare(b));
-  $('#invBodega').innerHTML = ordenT.length ? `<div class="inv-cards">${ordenT.map(t => { const { c, n } = tipoTxt(t), f = fotoTipo(c, n), b = bod[t] || 0;
-    return `<div class="inv-card ${b < 0 ? 'neg' : b === 0 ? 'cero' : ''}">
-      <div class="tf" ${f ? `data-verfoto="${esc(f.replace(/sz=w\d+/, 'sz=w1600'))}"` : ''}>${f ? `<img src="${esc(f)}" alt="Foto de ${esc(n)}" loading="lazy">` : `<span>${SVG_CAM.replace('<svg','<svg width="26" height="26"')}Sin foto</span>`}</div>
-      <span class="comp-et">${compTxt(c)}</span><b>${esc(n)}</b>
-      <div class="inv-n"><span><small>Bodega</small><span class="num">${b}</span></span><span><small>Equipos</small><span class="num2">${enEqT(t)}</span></span></div>
-      <div class="acciones-foto solo-admin" style="margin:4px 0 0"><button type="button" class="btn peq" data-tipo-foto="${esc(t)}" data-modo="camara">${SVG_CAM.replace('stroke-width="1.6"','stroke-width="2"')}</button><button type="button" class="btn peq" data-tipo-foto="${esc(t)}" data-modo="galeria">Subir foto</button></div>
-    </div>`; }).join('')}</div>` : '<p class="nota">No hay tipos registrados.</p>';
-  $('#invTipos').innerHTML = tipos.length ? `<div class="tabla-wrap"><table class="t"><thead><tr><th>Tipo</th><th>Componente</th><th class="num">Bodega</th><th class="num">En equipos</th><th class="num">Total</th></tr></thead><tbody>
-    ${tipos.map(t => { const { c, n } = tipoTxt(t); const e = lugares.reduce((a, l) => a + ((st[l] || {})[t] || 0), 0); return `<tr><td><b>${esc(n)}</b></td><td>${compTxt(c)}</td><td class="num">${bod[t] || 0}</td><td class="num">${e}</td><td class="num"><b>${(bod[t] || 0) + e}</b></td></tr>`; }).join('')}</tbody></table></div>` : '<p class="nota">Sin datos.</p>';
-  const tiposEq = tipos.filter(t => conEq.some(l => st[l][t]));
-  $('#invEquipos').innerHTML = conEq.length ? `<div class="tabla-wrap"><table class="t inv-eq"><thead><tr><th>Equipo</th><th>Zona</th>${tiposEq.map(t => `<th class="num">${esc(tipoTxt(t).n)}</th>`).join('')}<th class="num">Total</th><th class="solo-admin"></th></tr></thead><tbody>
+  const ordenE = { NUEVA:0, 'SEMI NUEVA':1, USADA:2 };
+  const ordenT = todosT.sort((a, b) => { const A = tipoTxt(a), B = tipoTxt(b);
+    return (ordenE[A.estado] - ordenE[B.estado]) || ((bod[b] || 0) - (bod[a] || 0)) || (enEqT(b) - enEqT(a)) || A.base.localeCompare(B.base); });
+  $('#invBodega').innerHTML = ordenT.length ? `<div class="inv-cards">${ordenT.map(t => { const x = tipoTxt(t), ft = fotoTipo(x.c, x.n) || fotoTipo(x.c, x.base), b = bod[t] || 0;
+    return `<div class="inv-card ${b < 0 ? 'neg' : b === 0 ? 'cero' : ''} est-${x.estado.replace(' ', '-')}">
+      <div class="tf" ${ft ? `data-verfoto="${esc(ft.replace(/sz=w\d+/, 'sz=w1600'))}"` : ''}>${ft ? `<img src="${esc(ft)}" alt="Foto de ${esc(x.base)}" loading="lazy">` : `<span>${SVG_CAM.replace('<svg','<svg width="26" height="26"')}Sin foto</span>`}</div>
+      <span class="comp-et">${compTxt(x.c)}</span> ${chipEst(x.estado)}<b>${esc(x.base)}</b>
+      <div class="inv-n"><span><small>Bodega</small><span class="num">${b}</span></span><span><small>Equipos</small><span class="num2">${enEqT(t)}</span></span>${tal[t] ? `<span><small>Taller</small><span class="num2">${tal[t]}</span></span>` : ''}</div>
+      <div class="acciones-foto solo-admin" style="margin:4px 0 0"><button type="button" class="btn peq" data-tipo-foto="${esc(x.c + '|' + x.base)}" data-modo="camara">${SVG_CAM.replace('stroke-width="1.6"','stroke-width="2"')}</button><button type="button" class="btn peq" data-tipo-foto="${esc(x.c + '|' + x.base)}" data-modo="galeria">Subir foto</button></div>
+    </div>`; }).join('')}</div>` : '<p class="nota">No hay tipos con estos filtros.</p>';
+  const tiposOrd = [...tipos].sort((a, b) => { const A = tipoTxt(a), B = tipoTxt(b); return A.base.localeCompare(B.base, 'es', {numeric:true}) || ordenE[A.estado] - ordenE[B.estado]; });
+  $('#invTipos').innerHTML = tipos.length ? `<div class="tabla-wrap"><table class="t"><thead><tr><th>Tipo</th><th>Estado</th><th>Componente</th><th class="num">Bodega</th><th class="num">En equipos</th><th class="num">Taller</th><th class="num">Total</th></tr></thead><tbody>
+    ${tiposOrd.map(t => { const x = tipoTxt(t), e = enEqT(t); return `<tr><td><b>${esc(x.base)}</b></td><td>${chipEst(x.estado)}</td><td>${compTxt(x.c)}</td><td class="num">${bod[t] || 0}</td><td class="num">${e}</td><td class="num">${tal[t] || 0}</td><td class="num"><b>${(bod[t] || 0) + e + (tal[t] || 0)}</b></td></tr>`; }).join('')}</tbody></table></div>` : '<p class="nota">Sin datos.</p>';
+  // entregadas a taller
+  const MT = (S.inventario || []).filter(m => m.hacia === 'TALLER' && ok((m.componente || 'BOQUILLA') + '|' + m.tipo)).reverse();
+  if ($('#invTaller')) $('#invTaller').innerHTML = MT.length ? `<div class="tabla-wrap"><table class="t"><thead><tr><th>Fecha</th><th>Tipo</th><th>Estado</th><th class="num">Cant.</th><th>Salió de</th><th>Detalle</th><th>Registró</th></tr></thead><tbody>
+    ${MT.map(m => { const x = partesTipo(m.tipo); return `<tr><td>${esc(m.fecha)}</td><td><b>${esc(x.base)}</b></td><td>${chipEst(x.estado)}</td><td class="num"><b>${esc(m.cantidad)}</b></td><td>${esc(nomLugar(m.desde))}</td><td class="obs">${esc(m.detalle)}</td><td>${esc(m.por)}</td></tr>`; }).join('')}</tbody></table></div>`
+    : `<p class="nota">Todavía no se ha entregado nada al taller. Para anotarlo use <b>+ Registrar movimiento › Entrega a taller</b>.</p>`;
+  const tiposEq = tiposOrd.filter(t => conEq.some(l => st[l][t]));
+  $('#invEquipos').innerHTML = conEq.length ? `<div class="tabla-wrap"><table class="t inv-eq"><thead><tr><th>Equipo</th><th>Zona</th>${tiposEq.map(t => { const x = tipoTxt(t); return `<th class="num">${esc(x.base)}${x.estado !== 'NUEVA' ? `<br><small>${EST_BOQ[x.estado]}</small>` : ''}</th>`; }).join('')}<th class="num">Total</th><th class="solo-admin"></th></tr></thead><tbody>
     ${conEq.sort((a, b) => a.localeCompare(b, 'es', {numeric:true})).map(l => { const e = S.equipos.find(x => x.codigo === l); return `<tr ${e ? `data-eq="${esc(l)}"` : ''}><td><b>${esc(l)}</b><small>${esc(descEq(l))}</small></td><td>${esc(e ? e.zona : '')}</td>${tiposEq.map(t => `<td class="num">${st[l][t] || '·'}</td>`).join('')}<td class="num"><b>${sum(st[l])}</b></td><td class="solo-admin"><button type="button" class="ed" data-inv-add="${esc(l)}" aria-label="Agregar a ${esc(l)}">+</button></td></tr>`; }).join('')}</tbody></table></div>` : '<p class="nota">No hay boquillas contadas en equipos.</p>';
-  const M = [...(S.inventario || [])].filter(m => !f.comp || (m.componente || 'BOQUILLA') === f.comp).reverse();
-  const etq = m => ({ 'CONTEO INICIAL':'Conteo inicial', CONTEO:'Agregado a equipo', ENTRADA:'Entrada', SALIDA:'Salida a equipo', DEVOLUCION:'Devolución', BAJA:'Baja' }[m.movimiento] || bonito(m.movimiento));
+  const M = [...(S.inventario || [])].filter(m => ok((m.componente || 'BOQUILLA') + '|' + m.tipo)).reverse();
+  const etq = m => ({ 'CONTEO INICIAL':'Conteo inicial', CONTEO:'Agregado a equipo', ENTRADA:'Entrada', SALIDA:'Salida a equipo', DEVOLUCION:'Devolución', BAJA:'Baja', TALLER:'Entrega a taller' }[m.movimiento] || bonito(m.movimiento));
   $('#invMovs').innerHTML = M.length ? `<div class="tabla-wrap"><table class="t inv-mov"><thead><tr><th>Fecha</th><th>Movimiento</th><th>Tipo</th><th class="num">Cant.</th><th>De → A</th><th>Detalle</th><th>Registró</th>${esAdmin() ? '<th></th>' : ''}</tr></thead><tbody>
-    ${M.map(m => `<tr><td>${esc(m.fecha)}</td><td><span class="mov m-${esc(m.movimiento.replace(/\s+/g,'-'))}">${etq(m)}</span></td><td><b>${esc(m.tipo)}</b>${m.foto ? ` <button type="button" class="mini-foto" data-verfoto="${esc(fotoUrl(m.foto, 1600))}" aria-label="Ver foto">📷</button>` : ''}</td><td class="num"><b>${esc(m.cantidad)}</b></td><td>${esc(m.desde ? nomLugar(m.desde) : '')}${m.desde || m.hacia ? ' → ' : ''}${esc(m.hacia ? nomLugar(m.hacia) : (m.movimiento === 'BAJA' ? 'Fuera' : ''))}</td><td class="obs">${esc(m.detalle)}</td><td>${esc(m.por)}</td>${esAdmin() ? `<td><button type="button" class="ed" data-mov-borrar="${esc(m.id)}" aria-label="Borrar movimiento">🗑</button></td>` : ''}</tr>`).join('')}</tbody></table></div>` : '<p class="nota">Sin movimientos.</p>';
+    ${M.map(m => { const x = partesTipo(m.tipo), pend = String(m.id).startsWith('L-'); return `<tr class="${pend ? 'pend' : ''}"><td>${esc(m.fecha)}${pend ? '<br><small class="pend-et">Por subir</small>' : ''}</td><td><span class="mov m-${esc(m.movimiento.replace(/\s+/g,'-'))}">${etq(m)}</span></td><td><b>${esc(x.base)}</b> ${chipEst(x.estado)}${m.foto ? ` <button type="button" class="mini-foto" data-verfoto="${esc(fotoUrl(m.foto, 1600))}" aria-label="Ver foto">📷</button>` : ''}</td><td class="num"><b>${esc(m.cantidad)}</b></td><td>${esc(m.desde ? nomLugar(m.desde) : '')}${m.desde || m.hacia ? ' → ' : ''}${esc(m.hacia ? nomLugar(m.hacia) : (m.movimiento === 'BAJA' ? 'Fuera' : ''))}</td><td class="obs">${esc(m.detalle)}</td><td>${esc(m.por)}</td>${esAdmin() ? `<td><button type="button" class="ed" data-mov-borrar="${esc(m.id)}" aria-label="Borrar movimiento">🗑</button></td>` : ''}</tr>`; }).join('')}</tbody></table></div>` : '<p class="nota">Sin movimientos.</p>';
 }
 let tipoFotoPend = null;
 async function subirFotoTipo(file){
@@ -1401,10 +1599,10 @@ async function subirFotoTipo(file){
   try {
     velo('Subiendo foto del tipo…');
     const data = await comprimir(file);
-    await api('tipoFoto', { tipo, componente: comp, base64: data });
+    const rr = await enviar('tipoFoto', { tipo, componente: comp, base64: data }, 'Foto del tipo ' + tipo);
     S.fotosLocales['tipo|' + comp + '|' + norm(tipo)] = data;
     const r = tipoReg(comp, tipo); if (r) r.foto = r.foto || 'local'; else (S.tipos = S.tipos || []).push({ tipo, componente: comp, foto: 'local' });
-    toast('Foto guardada para ' + tipo + '.'); pintarInventario();
+    guardarCache(); toast(rr.enCola ? 'Sin conexión: foto guardada en el teléfono. Se subirá sola.' : 'Foto guardada para ' + tipo + '.'); pintarInventario();
   } catch(err){ toast(err.message, 5000); }
   finally { velo(); tipoFotoPend = null; }
 }
@@ -1417,60 +1615,63 @@ function formMovimiento(opts){
   $('#mCuerpo').innerHTML = `
     <div><label>Movimiento</label><div class="seg seg-mov" id="mvTipo">${Object.entries(MOVS).map(([k, [t]]) => `<button type="button" data-mv="${k}" class="${k === (opts.mv || 'ENTRADA') ? 'activo' : ''}">${t}</button>`).join('')}</div><p class="nota" id="mvAyuda" style="margin-top:6px"></p></div>
     <div><label>Qué es</label><div class="seg" id="mvComp"><button type="button" data-mc="BOQUILLA" class="activo">Boquilla</button><button type="button" data-mc="FILTRO">Filtro</button></div></div>
+    <div><label>Estado</label><div class="seg" id="mvEst"><button type="button" data-me="NUEVA" class="activo">Nueva</button><button type="button" data-me="SEMI NUEVA">Semi nueva</button><button type="button" data-me="USADA">Usada</button></div></div>
     <div class="ubic"><div><label for="mvT">Tipo *</label><div id="mvTCaja"></div><p class="nota" id="mvStock" style="margin-top:6px"></p><div id="mvTipoFoto"></div></div>
       <div><label for="mvCant">Cantidad *</label><input type="number" id="mvCant" min="1" step="1" inputmode="numeric"></div></div>
     <div id="mvEqCaja"><label for="mvEq" id="mvEqLbl">Equipo</label><select id="mvEq">${opEq}</select></div>
     <div id="mvBajaCaja" class="oculto"><label for="mvDesde">Sale de</label><select id="mvDesde"><option value="BODEGA">Bodega</option>${eqs.map(e => `<option value="${esc(e.codigo)}">${esc(e.codigo)} · ${esc(e.desc)}</option>`).join('')}</select></div>
     <div><label for="mvDet">Detalle</label><input type="text" id="mvDet" placeholder="Ej. compra de noviembre, sobrante del 2025, se quebró…"></div>
     <div><label>Foto (opcional)</label><div class="mv-foto"><div class="bf" id="mvPrev"><span>Sin foto</span></div><div class="acciones-foto" style="margin:0"><button type="button" class="btn peq" id="mvCam">${SVG_CAM.replace('stroke-width="1.6"','stroke-width="2"')}Tomar foto</button><button type="button" class="btn peq" id="mvGal">Subir foto</button></div></div></div>`;
-  let mv = opts.mv || 'ENTRADA', comp = 'BOQUILLA';
+  let mv = opts.mv || 'ENTRADA', comp = 'BOQUILLA', est = 'NUEVA';
   if (opts.eq) $('#mvEq').value = opts.eq;
   const st = stockInv();
   const pintaTipo = () => {
-    const ya = [...new Set((S.inventario || []).filter(m => (m.componente || 'BOQUILLA') === comp).map(m => m.tipo))];
+    const ya = [...new Set((S.inventario || []).filter(m => (m.componente || 'BOQUILLA') === comp).map(m => partesTipo(m.tipo).base))];
     const base = comp === 'BOQUILLA' ? [...ya, ...BOQ_TIPOS.filter(t => !ya.some(y => norm(y) === norm(t)))] : (ya.length ? ya : ['FILTRO']);
     $('#mvTCaja').innerHTML = selOtro('mvT', base, '', 'Elija el tipo');
     const sl = $('#mvT'); sl.onchange = () => { const o = $('#mvT_o'); o.classList.toggle('oculto', sl.value !== '__otro'); if (sl.value === '__otro') o.focus(); pintaStock(); };
     $('#mvT_o').oninput = pintaStock; pintaStock();
   };
   const pintaStock = () => {
-    const t = valSel('mvT').toUpperCase(), k = comp + '|' + t;
-    const lugar = mv === 'DEVOLUCION' || mv === 'CONTEO' ? $('#mvEq').value : mv === 'BAJA' ? $('#mvDesde').value : 'BODEGA';
+    const tb = valSel('mvT').toUpperCase().trim(), t = tb ? tipoCon(tb, est) : '', k = comp + '|' + t;
+    const lugar = mv === 'DEVOLUCION' || mv === 'CONTEO' ? $('#mvEq').value : mv === 'BAJA' || mv === 'TALLER' ? $('#mvDesde').value : 'BODEGA';
     $('#mvStock').textContent = t ? `En ${nomLugar(lugar) === '—' ? 'ese equipo' : nomLugar(lugar)} hay ${((st[lugar] || {})[k]) || 0}.` : '';
-    const ft = t ? fotoTipo(comp, t) : '';
+    const ft = t ? (fotoTipo(comp, t) || fotoTipo(comp, tb)) : '';
     $('#mvTipoFoto').innerHTML = ft ? `<img class="mv-tf" src="${esc(ft)}" alt="Foto de ${esc(t)}" data-verfoto="${esc(ft.replace(/sz=w\d+/, 'sz=w1600'))}">` : '';
   };
   const pintaMv = () => {
     $('#mvAyuda').textContent = MOVS[mv][1];
-    $('#mvEqCaja').classList.toggle('oculto', mv === 'ENTRADA' || mv === 'BAJA');
-    $('#mvBajaCaja').classList.toggle('oculto', mv !== 'BAJA');
+    $('#mvEqCaja').classList.toggle('oculto', mv === 'ENTRADA' || mv === 'BAJA' || mv === 'TALLER');
+    $('#mvBajaCaja').classList.toggle('oculto', mv !== 'BAJA' && mv !== 'TALLER');
     $('#mvEqLbl').textContent = mv === 'SALIDA' ? 'Se entrega al equipo *' : mv === 'CONTEO' ? 'Equipo *' : 'Regresa del equipo *';
     pintaStock();
   };
   $('#mvTipo').onclick = ev => { const b = ev.target.closest('[data-mv]'); if (!b) return; mv = b.dataset.mv; $$('#mvTipo button').forEach(x => x.classList.toggle('activo', x === b)); pintaMv(); };
   $('#mvComp').onclick = ev => { const b = ev.target.closest('[data-mc]'); if (!b) return; comp = b.dataset.mc; $$('#mvComp button').forEach(x => x.classList.toggle('activo', x === b)); pintaTipo(); };
   $('#mvEq').onchange = pintaStock; $('#mvDesde').onchange = pintaStock;
+  $('#mvEst').onclick = ev => { const b = ev.target.closest('[data-me]'); if (!b) return; est = b.dataset.me; $$('#mvEst button').forEach(x => x.classList.toggle('activo', x === b)); pintaStock(); };
   $('#mvCam').onclick = () => { fotoPend = 'INVFORM'; const i = $('#fotoCamara'); i.value = ''; i.click(); };
   $('#mvGal').onclick = () => { fotoPend = 'INVFORM'; const i = $('#fotoGaleria'); i.value = ''; i.click(); };
-  $('#btnGuardarMov').onclick = () => guardarMovimiento(mv, comp, st);
+  $('#btnGuardarMov').onclick = () => guardarMovimiento(mv, comp, st, est);
   pintaTipo(); pintaMv();
   $('#dlgMov').showModal();
 }
-async function guardarMovimiento(mv, comp, st){
-  const tipo = valSel('mvT').toUpperCase().trim(), cant = parseInt($('#mvCant').value, 10), eq = $('#mvEq').value;
+async function guardarMovimiento(mv, comp, st, est){
+  const tb = valSel('mvT').toUpperCase().trim(), tipo = tb ? tipoCon(tb, est) : '', cant = parseInt($('#mvCant').value, 10), eq = $('#mvEq').value;
   if (!tipo) return toast('Elija el tipo.');
   if (!(cant > 0)) return toast('Escriba la cantidad.');
   if ((mv === 'SALIDA' || mv === 'DEVOLUCION' || mv === 'CONTEO') && !eq) return toast('Elija el equipo.');
   const desde = mv === 'ENTRADA' || mv === 'CONTEO' ? '' : mv === 'SALIDA' ? 'BODEGA' : mv === 'DEVOLUCION' ? eq : $('#mvDesde').value;
-  const hacia = mv === 'ENTRADA' ? 'BODEGA' : mv === 'CONTEO' ? eq : mv === 'SALIDA' ? eq : mv === 'DEVOLUCION' ? 'BODEGA' : '';
+  const hacia = mv === 'ENTRADA' ? 'BODEGA' : mv === 'CONTEO' ? eq : mv === 'SALIDA' ? eq : mv === 'DEVOLUCION' ? 'BODEGA' : mv === 'TALLER' ? 'TALLER' : '';
   const hay = desde ? ((st[desde] || {})[comp + '|' + tipo] || 0) : Infinity;
   if (cant > hay && !confirm(`En ${nomLugar(desde)} solo hay ${hay} de ${tipo}. ¿Registrar de todos modos?`)) return;
   const b = $('#btnGuardarMov'); b.disabled = true; b.textContent = movFoto ? 'Subiendo foto…' : 'Guardando…';
   const datos = { movimiento: mv, componente: comp, tipo, cantidad: cant, desde, hacia, detalle: $('#mvDet').value.trim() };
   try {
-    const r = await api('movimiento', { datos, base64: movFoto || '' });
-    (S.inventario = S.inventario || []).push(Object.assign({ id: r.id, fecha: r.fecha, foto: r.foto || '', por: S.ses.usuario.nombre }, datos, { cantidad: String(cant) }));
-    movFoto = null; guardarCache(); $('#dlgMov').close(); toast('Movimiento guardado.'); pintarInventario();
+    const r = await enviar('movimiento', { datos, base64: movFoto || '' });
+    const hoy = new Date().toLocaleDateString('es-GT', { day:'2-digit', month:'2-digit', year:'numeric' });
+    (S.inventario = S.inventario || []).push(Object.assign({ id: r.id, fecha: r.fecha || hoy, foto: r.foto || '', por: S.ses.usuario.nombre }, datos, { cantidad: String(cant) }));
+    movFoto = null; guardarCache(); $('#dlgMov').close(); toast(r.enCola ? 'Sin conexión: movimiento guardado en el teléfono. Se subirá solo.' : 'Movimiento guardado.'); pintarInventario();
     if ($('#dlgEquipo').open && S.actual) pintarInvEquipo(S.actual.codigo);
   } catch(err){ toast(err.message, 5000); }
   finally { b.disabled = false; b.textContent = 'Guardar'; }
@@ -1478,7 +1679,7 @@ async function guardarMovimiento(mv, comp, st){
 async function borrarMovimiento(id){
   const m = (S.inventario || []).find(x => x.id === id); if (!m) return;
   if (!confirm(`¿Borrar el movimiento ${m.id} (${m.movimiento} · ${m.tipo} · ${m.cantidad})? El inventario se recalcula sin él.`)) return;
-  try { await api('movimientoBorrar', { id }); S.inventario = S.inventario.filter(x => x.id !== id); guardarCache(); toast('Movimiento borrado.'); pintarInventario(); }
+  try { if (!(String(id).startsWith('L-') && await quitarDeCola(id))) await enviar('movimientoBorrar', { id }, 'Borrar movimiento ' + id); S.inventario = S.inventario.filter(x => x.id !== id); guardarCache(); toast('Movimiento borrado.'); pintarInventario(); }
   catch(err){ toast(err.message, 5000); }
 }
 
@@ -1671,7 +1872,7 @@ async function guardarBoquilla(id){
   if (!datos.boquilla) { toast(`Elija o escriba el tipo de ${compTxt(datos.componente).toLowerCase()}.`); $('#bfBoq').focus(); return; }
   const b = $('#bfGuardar'); b.disabled = true; b.textContent = boqFoto ? 'Subiendo foto…' : 'Guardando…';
   try {
-    const r = await api('boquilla', { id: id || '', codigo: e.codigo, grupo: e.grupo, datos, base64: boqFoto || '' });
+    const r = await enviar('boquilla', { id: id || '', codigo: e.codigo, grupo: e.grupo, datos, base64: boqFoto || '' }, `${compTxt(datos.componente)} de ${e.codigo}`);
     const ex = (S.boquillas || []).find(x => x.id === r.id);
     const fila = Object.assign(ex || { id: r.id, codigo: e.codigo }, datos, { por: S.ses.usuario.nombre, fecha: new Date().toLocaleString('es-GT') });
     if (r.foto) fila.foto = r.foto;
@@ -1679,7 +1880,7 @@ async function guardarBoquilla(id){
     if (!ex) (S.boquillas = S.boquillas || []).push(fila);
     boqFoto = null;
     guardarCache(); pintarBoquillas(); $('#boqForm').classList.add('oculto');
-    toast(`${compTxt(datos.componente)} ${id ? 'actualizado' : 'agregado'}.`);
+    toast(r.enCola ? 'Sin conexión: guardado en el teléfono. Se subirá solo.' : `${compTxt(datos.componente)} ${id ? 'actualizado' : 'agregado'}.`);
     if (S.vista === 'catalogo') pintarLista('catalogo');
   } catch(err){ toast(err.message, 5000); b.disabled = false; b.textContent = id ? 'Guardar boquilla' : 'Agregar'; }
 }
@@ -1687,7 +1888,7 @@ async function borrarBoquilla(id){
   const b = (S.boquillas || []).find(x => x.id === id); if (!b) return;
   if (!confirm(`¿Quitar ${compTxt(compDe(b)).toLowerCase()} ${b.boquilla} (${totalBoq(b)}) de ${b.codigo}?`)) return;
   try {
-    await api('boquillaBorrar', { id });
+    if (!(String(id).startsWith('L-') && await quitarDeCola(id))) await enviar('boquillaBorrar', { id }, 'Quitar ' + b.boquilla + ' de ' + b.codigo);
     S.boquillas = S.boquillas.filter(x => x.id !== id); guardarCache(); pintarBoquillas(); toast('Quitado.');
     if (S.vista === 'catalogo') pintarLista('catalogo');
   } catch(err){ toast(err.message, 5000); }
@@ -1714,12 +1915,12 @@ async function guardarEquipo(){
   const datos = { descripcion: $('#dDesc').value.trim(), ubicacion: $('#dUbic').value.trim(), observaciones: $('#dObs').value.trim(), lat: $('#dGps').dataset.lat || '', lng: $('#dGps').dataset.lng || '' };
   const b = $('#btnGuardarEq'); b.disabled = true; b.textContent = 'Guardando…';
   try {
-    await api('catalogo', { codigo: e.codigo, datos });
+    const rc = await enviar('catalogo', { codigo: e.codigo, datos }, 'Datos de ' + e.codigo);
     const c = S.catalogo[e.codigo] || (S.catalogo[e.codigo] = { 'CODIGO DE EQUIPO': e.codigo });
     Object.assign(c, { DESCRIPCION: datos.descripcion, UBICACION: datos.ubicacion, OBSERVACIONES: datos.observaciones, LATITUD: datos.lat, LONGITUD: datos.lng,
       BOQUILLAS: datos.boquillas ?? c.BOQUILLAS, BAJANTES: datos.bajantes ?? c.BAJANTES, FILTROS: datos.filtros ?? c.FILTROS, 'ACTUALIZADO POR': S.ses.usuario.nombre, 'FECHA ACTUALIZACION': new Date().toLocaleString('es-GT') });
     guardarCache();
-    $('#dlgEquipo').close(); toast('Cambios guardados.'); pintarVista();
+    $('#dlgEquipo').close(); toast(rc.enCola ? 'Sin conexión: cambios guardados en el teléfono. Se subirán solos.' : 'Cambios guardados.'); pintarVista();
   } catch(err){ toast(err.message, 5000); }
   finally { b.disabled = false; b.textContent = 'Guardar cambios'; }
 }
@@ -1773,17 +1974,17 @@ async function alElegirFoto(ev){
   }
   const e = S.actual, tipo = fotoPend;
   try {
-    velo('Subiendo foto a Drive…');
+    velo(S.online ? 'Subiendo foto a Drive…' : 'Guardando foto en el teléfono…');
     const data = await comprimir(file);
-    const r = await api('foto', { codigo: e.codigo, tipo, grupo: e.grupo, descripcion: e.desc, base64: data });
+    const r = await enviar('foto', { codigo: e.codigo, tipo, grupo: e.grupo, descripcion: e.desc, base64: data }, 'Foto de ' + e.codigo);
     S.fotosLocales[e.codigo + '|' + tipo] = data;
     const c = S.catalogo[e.codigo] || (S.catalogo[e.codigo] = { 'CODIGO DE EQUIPO': e.codigo });
-    c['FOTO ' + tipo] = r.id; c['CARPETA DRIVE'] = r.carpeta;
+    if (!r.enCola){ c['FOTO ' + tipo] = r.id; c['CARPETA DRIVE'] = r.carpeta; }
     guardarCache();
     if (tipo === 'EQUIPO') pintarFotoGrande();
     else { const ft = $(`.ft[data-ver="${tipo}"]`); if (ft) ft.innerHTML = `<img src="${data}" alt="">`; }
-    const a = $('#dCarpeta'); a.classList.remove('oculto'); a.href = r.carpeta;
-    toast('Foto guardada en Drive · EQUIPOS MALEZAS.');
+    if (r.carpeta){ const a = $('#dCarpeta'); a.classList.remove('oculto'); a.href = r.carpeta; }
+    toast(r.enCola ? 'Sin conexión: foto guardada en el teléfono. Se subirá sola a Drive.' : 'Foto guardada en Drive · EQUIPOS MALEZAS.');
     if (S.vista === 'catalogo') pintarLista('catalogo');
   } catch(err){ toast(err.message, 5000); }
   finally { velo(); }
@@ -1839,6 +2040,7 @@ async function confirmarExcel(){
   const x = S.excel; if (!x) return;
   const b = $('#btnConfirmarExcel'); b.disabled = true; b.textContent = 'Cargando…';
   try {
+    if (!S.online) throw new Error('Para cargar el Excel se necesita internet. Conéctese y vuelva a intentarlo.');
     const r = await api('excel', { encabezados: x.enc, filas: x.filas, archivoNombre: x.archivo, archivoBase64: x.b64 });
     $('#dlgExcel').close(); toast(`Excel cargado: ${x.filas.length} filas · ${r.cambios || 0} equipo${r.cambios===1?'':'s'} con cambios.`, 5000);
     S.excel = null; await cargarDatos(true);
@@ -2058,18 +2260,24 @@ function marcarCambios(){
   const n = visto === ult ? 0 : A.filter(a => a.fecha === ult).length;
   $$('.nav[data-ir="cambios"] .badge').forEach(b => { b.textContent = n; b.classList.toggle('oculto', !n); });
 }
-async function cargarDatos(forzar){
+async function cargarDatos(forzar, silencioso){
   const cache = leer('cat_datos');
-  if (cache && !forzar){ usarDatos(cache); mostrarApp(); }
-  else $('#cargando').classList.remove('oculto');
+  await pintarCola();
+  const pend = (S.cola || []).some(x => x.estado !== 'error');
+  if (cache && (!forzar || pend)){ usarDatos(cache); mostrarApp(); }
+  else if (!silencioso) $('#cargando').classList.remove('oculto');
+  if (pend){                                  // primero se sube lo hecho sin conexión; al terminar se recargan los datos
+    if (forzar && !S.online) toast('Sin conexión: se muestran los datos guardados en el teléfono.', 4500);
+    sincronizar(); return;
+  }
   try {
     const d = await api('datos');
     if (d.usuario) { S.ses.usuario = d.usuario; guardarSesion(); }
     usarDatos(d); guardarCache(); mostrarApp();
-    if (forzar) toast('Datos actualizados.');
+    if (forzar && !silencioso) toast('Datos actualizados.');
   } catch(err){
-    if (!cache) { $('#cargando').innerHTML = `<div class="vacio">${esc(err.message)}<br><br><button class="btn" type="button" data-accion="actualizar">Reintentar</button></div>`; }
-    else toast('Sin conexión: mostrando los últimos datos guardados.', 4500);
+    if (!cache) { $('#cargando').innerHTML = `<div class="vacio">${esc(err.message)}${err.red ? '<br><small>La primera vez se necesita internet para descargar el catálogo.</small>' : ''}<br><br><button class="btn" type="button" data-accion="actualizar">Reintentar</button></div>`; }
+    else if (!silencioso) toast(err.red ? 'Módulo sin conexión: mostrando los datos guardados en el teléfono.' : err.message, 4500);
   }
 }
 function mostrarApp(){
